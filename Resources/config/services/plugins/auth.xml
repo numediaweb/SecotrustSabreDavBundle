@@ -12,6 +12,7 @@
     <services>
         <service id="secotrust.sabredav_auth_backend" class="%secotrust.sabredav.auth_backend.class%" public="false">
             <argument type="service" id="security.context" />
+            <argument type="service" id="service_container" />
         </service>
         <service id="secotrust.sabredav_auth_plugin" class="%secotrust.sabredav.auth_plugin.class%" public="false">
             <argument type="service" id="secotrust.sabredav_auth_backend" />
