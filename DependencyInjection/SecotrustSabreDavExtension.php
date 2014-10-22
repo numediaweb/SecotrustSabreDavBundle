@@ -31,21 +31,26 @@ class SecotrustSabreDavExtension extends Extension
 
         $loader = new Loader\XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services/services.xml');
-
-        if ($config['base_uri']) {
+	
+        if (isset($config['base_uri'])) {
             $container->getDefinition('secotrust.sabredav.server')->addMethodCall('setBaseUri', array($config['base_uri']));
         }
-
-        if ($config['root_dir']) {
-            $container->getDefinition('secotrust.sabredav_root')->replaceArgument(0, $config['root_dir']);
-        } else {
-            $container->getDefinition('secotrust.sabredav_root')->clearTag('secotrust.sabredav.collection');
-        }
-
+	
+        // load all plugins
         foreach ($config['plugins'] as $plugin => $enabled) {
             if ($enabled) {
                 $loader->load(sprintf('services/plugins/%s.xml', $plugin));
             }
         }
+	
+        // no root dir is set, but webdav plugin is active: throw exception
+        if (array_key_exists('root_dir', $config) && $config['root_dir'] !== '' && $config['plugins']['webdav'] === true ) { 
+            //replace argument
+            $container->getDefinition('secotrust.sabredav_root')->replaceArgument(0, $config['root_dir']);
+        }
+
+        $container->setParameter('secotrust.cards_class', $config['settings']['cards_class']);
+        $container->setParameter('secotrust.addressbooks_class', $config['settings']['addressbooks_class']);
+        $container->setParameter('secotrust.principals_class', $config['settings']['principals_class']);
     }
 }

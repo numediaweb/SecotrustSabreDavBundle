@@ -27,26 +27,42 @@ class Configuration implements ConfigurationInterface
         $treeBuilder = new TreeBuilder();
         $rootNode = $treeBuilder->root('secotrust_sabre_dav');
 
-        // TODO needs "little" improvement ;-)
-
+        $default_base_uri = '/app_dev.php/remote';
+	
         $rootNode
             ->children()
-                ->scalarNode('root_dir')->example('%kernel.root_dir%/../web/dav')->defaultNull()->end()
-                ->scalarNode('base_uri')->example('/app_dev.php/dav/')->isRequired()->end()
+                ->scalarNode('root_dir')
+                    ->example('%kernel.root_dir%/../web/dav/')
+                ->end()
+                ->scalarNode('base_uri')
+                    ->example($default_base_uri)
+                ->end()
                 ->arrayNode('plugins')
                     ->addDefaultsIfNotSet()
                     ->children()
                         ->booleanNode('acl')->defaultFalse()->end()
                         ->booleanNode('auth')->defaultFalse()->end()
                         ->booleanNode('browser')->defaultFalse()->end()
-                        ->booleanNode('caldav')->defaultFalse()->end()
                         ->booleanNode('lock')->defaultTrue()->end()
                         ->booleanNode('temp')->defaultTrue()->end()
                         ->booleanNode('mount')->defaultFalse()->end()
                         ->booleanNode('patch')->defaultFalse()->end()
                         ->booleanNode('content_type')->defaultFalse()->end()
+                        ->booleanNode('webdav')->defaultFalse()->end()
+                        ->booleanNode('principal')->defaultFalse()->end()
+                        ->booleanNode('carddav')->defaultFalse()->end()
+                        ->booleanNode('caldav')->defaultFalse()->end()
                     ->end()
                 ->end()
+                ->arrayNode('settings')
+                    ->addDefaultsIfNotSet()
+                        ->children()
+                            ->scalarNode('cards_class')->defaultValue('')->end()		
+                            ->scalarNode('addressbooks_class')->defaultValue('')->end()		
+                            ->scalarNode('principals_class')->defaultValue('')->end()		
+                        ->end()
+                    ->end()
+                ->end()                
             ->end();
 
         return $treeBuilder;
