@@ -44,7 +44,7 @@ class SecotrustSabreDavExtension extends Extension
         }
 	
         // no root dir is set, but webdav plugin is active: throw exception
-        if (array_key_exists('root_dir', $config) && $config['root_dir'] !== '' && $config['plugins']['webdav'] === true ) { 
+		if (!empty($config['root_dir']) && $config['plugins']['webdav']) {        
             //replace argument
             $container->getDefinition('secotrust.sabredav_root')->replaceArgument(0, $config['root_dir']);
         }
