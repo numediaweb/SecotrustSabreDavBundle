@@ -124,8 +124,8 @@ class AuthBackend implements BackendInterface
         $user = $userManager->findUserByUsername($userpass[0]);
 
         $token = new \Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken($user, $user->getPassword(), 'main', $user->getRoles());
-        $request = $this->container->get('request');
-        $session = $request->getSession();
+        $requestStack = $this->container->get('request_stack');
+        $session = $requestStack->getCurrentRequest()->getSession();
         $session->set('_security_main',  serialize($token));        
     }
     
