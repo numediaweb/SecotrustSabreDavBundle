@@ -43,24 +43,24 @@ interface AddressbookInterface {
     /**
      * Set description
      *
-     * @param string $label
+     * @param string $description
      * @return $this
      */
     public function setDescription($description);
     
     /**
-     * Get the value of the current CTag
+     * Get the synctoken of the current CTag
      * 
      * @return string
      */
-    public function getCtag();
+    public function getSynctoken();
     
     /**
-     * updates the cTag of the current Group 
+     * updates the synctoken of the current Group 
      * 
      * @return $this
      */
-    public function updateCTag();
+    public function updateSynctoken();
     
     /**
      * get the Uri
@@ -68,13 +68,47 @@ interface AddressbookInterface {
      * @return type
      */    
     public function getUri();
-    
 
     /**
-     * Get all Contacts for current Addressbook
+     * Get all Cars for current Addressbook
      * 
      * @return array
      */
-    public function getContactList();
+    public function getCards();
+    
+    /**
+     * Search Card by URI in current Addressbook
+     * 
+     * @param type $uri
+     */
+    public function findCard($uri);
 
+    /**
+     * Adds the given card to the current Addressbook
+     * 
+     * @param \Secotrust\Bundle\SabreDavBundle\Entity\CardInterface $card
+     */
+    public function addCard(CardInterface $card);
+    
+    /**
+     * Remove the given card from the current Addressbook
+     * 
+     * Caution: Check the field-configuration & your field-connections<br>
+     * and use the desired setting, if you want to delete the cards <br>
+     * - either only from the current Addressbook <br>
+     * - or from the cards-table too 
+     * 
+     * @param \Secotrust\Bundle\SabreDavBundle\Entity\CardInterface $card
+     * @return boolean
+     */
+    public function removeCard(CardInterface $card);
+    
+    /**
+     * Remove all Cards from current Addressbook.
+     * 
+     * Possible solution: use <code>$cards = $this->getCards()</code> and 
+     * <code>$this->removeCard($card)</code> to remove all cards
+     */
+    public function removeAllCards();
+    
 }

@@ -7,16 +7,16 @@
     <parameters>
         <parameter key="secotrust.sabredav.auth_backend.class">Secotrust\Bundle\SabreDavBundle\SabreDav\AuthBackend</parameter>
         <parameter key="secotrust.sabredav.auth_plugin.class">Sabre\DAV\Auth\Plugin</parameter>
+        <parameter key="secotrust.sabredav.auth.realm">SabreDAV</parameter>
     </parameters>
 
     <services>
         <service id="secotrust.sabredav_auth_backend" class="%secotrust.sabredav.auth_backend.class%" public="false">
-            <argument type="service" id="security.context" />
             <argument type="service" id="service_container" />
         </service>
         <service id="secotrust.sabredav_auth_plugin" class="%secotrust.sabredav.auth_plugin.class%" public="false">
             <argument type="service" id="secotrust.sabredav_auth_backend" />
-            <argument>SabreDAV</argument>
+            <argument>%secotrust.sabredav.auth.realm%</argument>
             <tag name="secotrust.sabredav.plugin" />
         </service>
     </services>

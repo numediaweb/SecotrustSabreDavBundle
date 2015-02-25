@@ -17,8 +17,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 /**
  * Class HttpResponse
  */
-class HttpResponse extends BaseResponse
-{
+class HttpResponse extends BaseResponse {
+
     /**
      * @var StreamedResponse
      */
@@ -29,8 +29,8 @@ class HttpResponse extends BaseResponse
      *
      * @param StreamedResponse $response
      */
-    public function __construct(StreamedResponse $response)
-    {
-        $this->response = $response; // TODO needed?
+    public function __construct(StreamedResponse $response) {
+        parent::__construct($response->getStatusCode(), $response->headers->all());
+        $this->response = $response;
     }
 }

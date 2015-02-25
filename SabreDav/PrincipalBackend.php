@@ -11,47 +11,52 @@
 
 namespace Secotrust\Bundle\SabreDavBundle\SabreDav;
 
-use Sabre\DAVACL\PrincipalBackend\BackendInterface;
-use Symfony\Component\Security\Core\SecurityContextInterface;
+use Sabre\DAVACL\PrincipalBackend\AbstractBackend;
+use FOS\UserBundle\Model\UserInterface;
+use FOS\UserBundle\Model\GroupInterface;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
-
-class PrincipalBackend implements BackendInterface
-{
-    /**
-     * @var SecurityContextInterface
-     */
-    private $context;
+class PrincipalBackend extends AbstractBackend {
 
     /**
-     * @var ContainerInterface
-     */
-    private $container;
-
-    /**
-     * @var ContainerInterface
+     * @var \Doctrine\ORM\EntityManager
      */
     private $_em;
 
     /**
-     * @var type 
+     * @var \FOS\UserBundle\Model\UserManagerInterface
+     */
+    private $user_manager;
+
+    /**
+     * @var \FOS\UserBundle\Model\GroupManagerInterface
+     */
+    private $group_manager;
+
+    /**
+     * @var string 
      */
     private $principals_class;
-    
-   /**
+
+    /**
+     * @var string
+     */
+    private $principalgroups_class;
+
+    /**
      * A list of additional fields to support
      *
      * @var array
      */
     protected $fieldMap = array(
-
         /**
          * This property can be used to display the users' real name.
          */
         '{DAV:}displayname' => array(
             'getter' => 'getUsername',
+            'setter' => 'setUsername'
         ),
-
         /**
          * This property is actually used by the CardDAV plugin, where it gets
          * mapped to {http://calendarserver.orgi/ns/}me-card.
@@ -62,57 +67,73 @@ class PrincipalBackend implements BackendInterface
          */
         '{http://sabredav.org/ns}vcard-url' => array(
             'getter' => 'getVCardUrl',
+            'setter' => 'setVCardUrl',
         ),
         /**
          * This is the users' primary email-address.
          */
         '{http://sabredav.org/ns}email-address' => array(
             'getter' => 'getEmail',
+            'setter' => 'setEmail',
         ),
-    );    
-    
+    );
+
     /**
      * Constructor
      *
-     * @param SecurityContextInterface $context
      * @param ContainerInterface $container
      */
-    public function __construct(SecurityContextInterface $context, ContainerInterface $container)
-    {
-        $this->context = $context;
-	$this->container = $container;
-	
-	$this->_em = $container->get('doctrine')->getManager();
-        
-        $this->principals_class = $this->container->getParameter('secotrust.principals_class');
-//        $this->cards_class = $this->container->getParameter('secotrust.cards_class');        
+    public function __construct(ContainerInterface $container) {
+
+        $this->_em = $container->get('doctrine')->getManager();
+        $this->principals_class = $container->getParameter('secotrust.principals_class');
+        $this->principalgroups_class = $container->getParameter('secotrust.principalgroups_class');
+        $this->user_manager = $container->get('fos_user.user_manager');
+
+        if (!$container->has('fos_user.group_manager')) {
+            $this->group_manager = $container->get('fos_user.group_manager');
+        }
     }
-    
+
     /**
      * get Array with Principal-Data from User-Object
      * 
-     * @param $userObject
+     * @param UserInterface|GroupInterface $principalObject
      * @param type $show_id
      * @return array
      */
-    private function getPrincipalArray($userObject, $show_id = false){
-	        
-        $principal = array();
-        if ($show_id){
-            $principal['id'] = $userObject->getId();
+    private function getPrincipalArray($principalObject, $show_id = false) {
+
+        if (!($principalObject instanceof UserInterface) && !($principalObject instanceof GroupInterface)) {
+            throw new DAV\Exception('$principalObject must be of type UserInterface of GroupInterface');
         }
 
-        $principal['uri'] = 'principals/' . $userObject->getUsername();
+        $principal = array();
+        if ($show_id) {
+            $principal['id'] = $principalObject->getId();
+        }
 
-        foreach($this->fieldMap as $key=>$value) {
-            if (method_exists($userObject, $value['getter']) && call_user_func(array($userObject, $value['getter']))) {
-                $principal[$key] = call_user_func(array($userObject, $value['getter']));
+        if ($principalObject instanceof UserInterface) {
+            $principal['uri'] = 'principals/' . $principalObject->getUsername();
+        } else {
+            $principal['uri'] = 'principals/' . $principalObject->getName();
+        }
+
+        foreach ($this->fieldMap as $key => $value) {
+            if (!method_exists($principalObject, $value['getter'])) {
+                continue;
+            }
+
+            $valueGetter = call_user_func(array($principalObject, $value['getter']));
+
+            if ($valueGetter) {
+                $principal[$key] = $valueGetter;
             }
         }
 
         return $principal;
     }
-    
+
     /**
      * Returns a list of principals based on a prefix.
      *
@@ -129,36 +150,59 @@ class PrincipalBackend implements BackendInterface
      * @param string $prefixPath
      * @return array
      */
-    public function getPrincipalsByPrefix($prefixPath){
+    public function getPrincipalsByPrefix($prefixPath) {
 
         $userlist = $this->_em->getRepository($this->principals_class)->findBy(array('enabled' => true));
         $principals = array();
 
-        foreach($userlist as $user) {
+        foreach ($userlist as $user) {
             $principals[] = $this->getPrincipalArray($user);
         }
 
-        return $principals;	
+        return $principals;
     }
-   
+
     /**
      * Returns a specific principal, specified by it's path.
      * The returned structure should be the exact same as from
      * getPrincipalsByPrefix.
      *
      * @param string $path
-     * @return array
+     * @return array|GroupInterface|UserInterface
      */
-    public function getPrincipalByPath($path){
-	
-        $username = str_replace('principals/', '', $path);
-        if (!(strpos($username,'/')=== false)){
-            $username = substr($username, 0, strpos($username, '/'));    
+    public function getPrincipalByPath($path, $getObject = false) {
+
+        $name = str_replace('principals/', '', $path);
+
+        // get username from path-string, if string contains additional slashes (e.g. admin/calendar-proxy-read)
+        if (!(strpos($name, '/') === false)) {
+            $name = substr($name, 0, strpos($name, '/'));
         }
 
-        $user = $this->_em->getRepository($this->principals_class)->findByUsername($username);
+        $user = $this->user_manager->findUserByUsername($name);
 
-        $user = $user[0];
+        if ($user === null) {
+
+            if (!$this->group_manager) {
+                return;
+            }
+
+            // search in group-manager
+            $group = $this->group_manager->findGroupByName($name);
+
+            if ($group === null) {
+                return;
+            }
+
+            if ($getObject === true) {
+                return $group;
+            }
+            return $this->getPrincipalArray($group, true);
+        }
+
+        if ($getObject === true) {
+            return $user;
+        }
 
         return $this->getPrincipalArray($user, true);
     }
@@ -166,54 +210,37 @@ class PrincipalBackend implements BackendInterface
     /**
      * Updates one ore more webdav properties on a principal.
      *
-     * The list of mutations is supplied as an array. Each key in the array is
-     * a propertyname, such as {DAV:}displayname.
+     * The list of mutations is stored in a Sabre\DAV\PropPatch object.
+     * To do the actual updates, you must tell this object which properties
+     * you're going to process with the handle() method.
      *
-     * Each value is the actual value to be updated. If a value is null, it
-     * must be deleted.
+     * Calling the handle method is like telling the PropPatch object "I
+     * promise I can handle updating this property".
      *
-     * This method should be atomic. It must either completely succeed, or
-     * completely fail. Success and failure can simply be returned as 'true' or
-     * 'false'.
-     *
-     * It is also possible to return detailed failure information. In that case
-     * an array such as this should be returned:
-     *
-     * array(
-     *   200 => array(
-     *      '{DAV:}prop1' => null,
-     *   ),
-     *   201 => array(
-     *      '{DAV:}prop2' => null,
-     *   ),
-     *   403 => array(
-     *      '{DAV:}prop3' => null,
-     *   ),
-     *   424 => array(
-     *      '{DAV:}prop4' => null,
-     *   ),
-     * );
-     *
-     * In this previous example prop1 was successfully updated or deleted, and
-     * prop2 was succesfully created.
-     *
-     * prop3 failed to update due to '403 Forbidden' and because of this prop4
-     * also could not be updated with '424 Failed dependency'.
-     *
-     * This last example was actually incorrect. While 200 and 201 could appear
-     * in 1 response, if there's any error (403) the other properties should
-     * always fail with 423 (failed dependency).
-     *
-     * But anyway, if you don't want to scratch your head over this, just
-     * return true or false.
-     *
+     * Read the PropPatch documenation for more info and examples.
+     * 
      * @param string $path
-     * @param array $mutations
-     * @return array|bool
+     * @param \Sabre\DAV\PropPatch $propPatch
      */
-    public function updatePrincipal($path, $mutations){
-        $this->container->get('logger')->error('CardDAV update of Principal currently not possible!');
-        return false;
+    public function updatePrincipal($path, \Sabre\DAV\PropPatch $propPatch) {
+
+        $principal = $this->getPrincipalByPath($path, true);
+
+        if (empty($principal)) {
+            return;
+        }
+
+        $propPatch->handle(array_keys($this->fieldMap), function($properties) use ($principal) {
+
+            foreach ($properties as $key => $value) {
+
+                $setter = $this->fieldMap[$key]['setter'];
+                $principal->$setter($value);
+            }
+
+            $this->_em->flush();
+            return true;
+        });
     }
 
     /**
@@ -221,15 +248,15 @@ class PrincipalBackend implements BackendInterface
      * properties.
      *
      * This search is specifically used by RFC3744's principal-property-search
-     * REPORT. You should at least allow searching on
-     * http://sabredav.org/ns}email-address.
+     * REPORT.
      *
      * The actual search should be a unicode-non-case-sensitive search. The
      * keys in searchProperties are the WebDAV property names, while the values
      * are the property values to search on.
      *
-     * If multiple properties are being searched on, the search should be
-     * AND'ed.
+     * By default, if multiple properties are submitted to this method, the
+     * various properties should be combined with 'AND'. If $test is set to
+     * 'anyof', it should be combined using 'OR'.
      *
      * This method should simply return an array with full principal uri's.
      *
@@ -242,13 +269,14 @@ class PrincipalBackend implements BackendInterface
      *
      * @param string $prefixPath
      * @param array $searchProperties
+     * @param string $test
      * @return array
      */
-    public function searchPrincipals($prefixPath, array $searchProperties){
-		
-        foreach($searchProperties as $property => $value) {
+    public function searchPrincipals($prefixPath, array $searchProperties, $test = 'allof') {
 
-            switch($property) {
+        foreach ($searchProperties as $property => $value) {
+
+            switch ($property) {
 
                 case '{DAV:}displayname' :
                     $searchArray['email'] = $value;
@@ -260,9 +288,9 @@ class PrincipalBackend implements BackendInterface
                     // Unsupported property
                     return array();
             }
-        }		
+        }
 
-        $principals = $this->_em->getRepository($this->principals_class)->searchPrincipals($prefixPath, $searchArray);
+        $principals = $this->_em->getRepository($this->principals_class)->searchPrincipals($prefixPath, $searchArray, $test);
 
         return $principals;
     }
@@ -273,29 +301,49 @@ class PrincipalBackend implements BackendInterface
      * @param string $principal
      * @return array
      */
-    public function getGroupMemberSet($principal){
-	$principal = $this->getPrincipalByPath($principal);
-	
-	$groupMemberSet = array();
-	//TODO: list group membership for all addressbooks(contactgroups): 
-	
-	$groupMemberSet[] = $principal['uri'];
-	
-	return $groupMemberSet;
+    public function getGroupMemberSet($principal) {
+
+        $groupMemberSet = array();
+
+        $principalObject = $this->getPrincipalByPath($principal, true);
+
+        if ($principalObject instanceof UserInterface) {
+            // principal is a user, not a group
+            throw new DAV\Exception('Group-Principal not found');
+        }
+
+        $principalArray = $this->getPrincipalArray($principalObject);
+        $groupMemberSet[] = $principalArray['uri'];
+
+        if ($this->principalgroups_class === '') {
+            return $groupMemberSet;
+        }
+
+        //TODO: list all group memberships for current group (FOSUserBundle)
+
+        return $groupMemberSet;
     }
 
     /**
-     * Returns the list of groups a principal is a member of
+     * Returns the list of groups a principal is a member of (each element of the list contains a URI)
      *
      * @param string $principal
      * @return array
      */
-    function getGroupMembership($principal){
-//	$principal = $this->getPrincipalByPath($principal);
-	
-	$groupMembership = array($principal);
-	
-	return $groupMembership;
+    function getGroupMembership($principal) {
+
+        $principal_data = $this->getPrincipalByPath($principal, true);
+
+        $groupMembership = array($principal['uri']);
+
+        if ($this->principalgroups_class !== '') {
+            foreach ($principal_data->getGroups() as $group) {
+                $groupPrincipal = $this->getPrincipalArray($group);
+                $groupMembership[] = $groupPrincipal['uri'];
+            }
+        }
+
+        return $groupMembership;
     }
 
     /**
@@ -307,8 +355,25 @@ class PrincipalBackend implements BackendInterface
      * @param array $members
      * @return void
      */
-    function setGroupMemberSet($principal, array $members){
-	$this->container->get('logger')->error('CardDAV update of Principal-Group-Membership currently possible!');	
-    }
+    function setGroupMemberSet($principal, array $members) {
 
+        $groupPrincipal = $this->getPrincipalByPath($principal);
+
+        if (!$groupPrincipal || !($groupPrincipal instanceof GroupInterface)) {
+            throw new DAV\Exception('(Group-)Principal not found');
+        }
+
+        // check if update of user-groups is possible; break if no group-manager or principalgroups_class
+        if ($this->principalgroups_class === '' || !$this->group_manager) {
+            return;
+        }
+
+        $memberObjects = array($groupPrincipal);
+
+        foreach ($members as $memberUri) {
+            $memberObjects[] = $this->getPrincipalByPath($memberUri);
+        }
+
+        // TODO: Implement the addition/deletion of new/old members
+    }
 }

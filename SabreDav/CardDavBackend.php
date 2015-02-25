@@ -11,38 +11,34 @@
 
 namespace Secotrust\Bundle\SabreDavBundle\SabreDav;
 
-use Sabre\CardDAV\Backend\BackendInterface;
+use Sabre\CardDAV\Backend\AbstractBackend;
+use Sabre\CardDAV\Backend\SyncSupport;
 use Sabre\CardDAV;
 use Secotrust\Bundle\SabreDavBundle\Entity\CardInterface;
-use Symfony\Component\Security\Core\SecurityContextInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
-class CardDavBackend implements BackendInterface
-{
-    /**
-     * @var SecurityContextInterface
-     */
-    private $context;
+class CardDavBackend extends AbstractBackend implements SyncSupport {
+
     /**
      * @var ContainerInterface
      */
     private $container;
 
     /**
-     * @var EntityManager
+     * @var \Doctrine\ORM\EntityManager
      */
     private $_em;
-       
+
     /**
-     * @var type 
+     * @var string 
      */
     private $addressbooks_class;
-    
+
     /**
-     * @var type 
+     * @var string 
      */
     private $cards_class;
-    
+
     /**
      * Create array with Card-Data
      * 
@@ -55,38 +51,34 @@ class CardDavBackend implements BackendInterface
         if (!($entity instanceof CardInterface)) {
             return false;
         }
-            
+
         $card = array(
             'id' => $entity->getId(),
             'carddata' => $entity->getVCard(),
-            'uri' => $entity->getVCardUid().'.vcf',
+            'uri' => $entity->getVCardUid() . '.vcf',
             'lastmodified' => $entity->getLastmodified(),
             'size' => strlen($entity->getVCard()),
             'etag' => $entity->getETag(),
-        );	
+        );
 
-        if ($show_id === false){
+        if ($show_id === false) {
             unset($card['id']);
         }
-        
+
         return $card;
-    } 
-    
+    }
+
     /**
      * Constructor
      *
-     * @param SecurityContextInterface $context
      * @param ContainerInterface $container
      */
-    public function __construct(SecurityContextInterface $context, ContainerInterface $container)
-    {
-        $this->context = $context;
-        $this->container = $container;
+    public function __construct(ContainerInterface $container) {
+        
+        $this->_em = $container->get('doctrine')->getManager();
 
-        $this->_em = $container->get('doctrine')->getManager();                             
-
-        $this->addressbooks_class = $this->container->getParameter('secotrust.addressbooks_class');
-        $this->cards_class = $this->container->getParameter('secotrust.cards_class');
+        $this->addressbooks_class = $container->getParameter('secotrust.addressbooks_class');
+        $this->cards_class = $container->getParameter('secotrust.cards_class');
     }
 
     /**
@@ -106,28 +98,22 @@ class CardDavBackend implements BackendInterface
      * @param string $principalUri
      * @return array
      */
-    public function getAddressBooksForUser($principalUri) {	
-        
-        $addressBooks = array();
+    public function getAddressBooksForUser($principalUri) {
 
-        // TODO: limit addressbook-listing for all (ACL-)Permissions
-        // create Service in Addressbook-Bundle (e.g. for additional permissions)
+        $addressBooks = array();
 
         $entities = $this->_em->getRepository($this->addressbooks_class)->findAllPrincipalAddressbooks($principalUri);
 
         foreach ($entities as $entity) {
 
-            // TODO: don't list, if the user doesn't have permission!!
-
             $addressBooks[] = array(
-                'id'  => $entity->getId(),
+                'id' => $entity->getId(),
                 'uri' => $entity->getUriLabel(),
                 'principaluri' => $principalUri,
                 '{DAV:}displayname' => $entity->getLabel(),
                 '{' . CardDAV\Plugin::NS_CARDDAV . '}addressbook-description' => $entity->getDescription(),
-                '{http://calendarserver.org/ns/}getctag' => $entity->getCtag(),
-                '{' . CardDAV\Plugin::NS_CARDDAV . '}supported-address-data' =>
-                    new CardDAV\Property\SupportedAddressData(),
+                '{http://calendarserver.org/ns/}getctag' => $entity->getSyncToken(),
+                '{http://sabredav.org/ns}sync-token' => $entity->getSyncToken()
             );
         }
 
@@ -135,55 +121,62 @@ class CardDavBackend implements BackendInterface
     }
 
     /**
-     * Updates an addressbook's properties
+     * Updates properties for an address book.
      *
-     * See Sabre\DAV\IProperties for a description of the mutations array, as
-     * well as the return value.
+     * The list of mutations is stored in a Sabre\DAV\PropPatch object.
+     * To do the actual updates, you must tell this object which properties
+     * you're going to process with the handle() method.
      *
-     * @param mixed $addressBookId
-     * @param array $mutations
-     * @see Sabre\DAV\IProperties::updateProperties
-     * @return bool|array
+     * Calling the handle method is like telling the PropPatch object "I
+     * promise I can handle updating this property".
+     *
+     * Read the PropPatch documenation for more info and examples.
+     *
+     * @param string $addressBookId
+     * @param \Sabre\DAV\PropPatch $propPatch
+     * @return void
      */
-    public function updateAddressBook($addressBookId, array $mutations) {
-        $addressBookId = 0;
-        $updates = array();
+    public function updateAddressBook($addressBookId, \Sabre\DAV\PropPatch $propPatch) {
 
-        foreach($mutations as $property=>$newValue) {
-
-            switch($property) {
-                case '{DAV:}displayname' :
-                    $updates['setLabel'] = $newValue;
-                    break;
-                case '{' . CardDAV\Plugin::NS_CARDDAV . '}addressbook-description' :
-                    $updates['setDescription'] = $newValue;
-                    break;
-                default :
-                    // If any unsupported values were being updated, we must
-                    // let the entire request fail.
-                    return false;
-            }
-
-        }
-
-        // No values are being updated?
-        if (!$updates) {
-            return false;
-        }
+        $supportedProperties = [
+            '{DAV:}displayname',
+            '{' . CardDAV\Plugin::NS_CARDDAV . '}addressbook-description',
+        ];
 
         $addressbook = $this->_em->getRepository($this->addressbooks_class)->find($addressBookId);
 
-        foreach ($updates as $setter => $value){
-            if (method_exists($addressbook, $setter)) {
-                $addressbook->$setter($value);
-            }
+        if (!$addressbook) {
+            return;
         }
 
-        $this->_em->flush();
+        $propPatch->handle($supportedProperties, function($mutations) use ($addressbook) {
 
-        return true;
+            $updates = [];
+            foreach ($mutations as $property => $newValue) {
+
+                switch ($property) {
+                    case '{DAV:}displayname' :
+                        $updates['setLabel'] = $newValue;
+                        break;
+                    case '{' . CardDAV\Plugin::NS_CARDDAV . '}addressbook-description' :
+                        $updates['setDescription'] = $newValue;
+                        break;
+                }
+            }
+
+            foreach ($updates as $setter => $value) {
+                if (method_exists($addressbook, $setter)) {
+                    $addressbook->$setter($value);
+                }
+            }
+
+            $this->_em->persist($addressbook);
+            $this->_em->flush();
+
+            return true;
+        });
     }
-    
+
     /**
      * Creates a new address book
      *
@@ -193,17 +186,17 @@ class CardDavBackend implements BackendInterface
      * @return void
      */
     public function createAddressBook($principalUri, $url, array $properties) {
-	
+
         $values = array(
-            'displayname' => null,
-            'description' => null,
+            'setLabel' => null,
+            'setDescription' => null,
             'principaluri' => $principalUri,
             'uri' => $url,
         );
 
-        foreach($properties as $property=>$newValue) {
+        foreach ($properties as $property => $newValue) {
 
-            switch($property) {
+            switch ($property) {
                 case '{DAV:}displayname' :
                     $values['setLabel'] = $newValue;
                     break;
@@ -213,18 +206,25 @@ class CardDavBackend implements BackendInterface
                 default :
                     throw new DAV\Exception\BadRequest('Unknown property: ' . $property);
             }
-        }	
+        }
+
+        // check if current addressbooks-class can be instantiated
+        if ((new \ReflectionClass($this->addressbooks_class))->isAbstract()) {
+            return null;
+        }
 
         $addressbook = new $this->addressbooks_class();
-        
-        foreach ($values as $setter => $value){
-            if (method_exists($addressbook, $setter)){
+
+        foreach ($values as $setter => $value) {
+            if (method_exists($addressbook, $setter)) {
                 $addressbook->$setter($value);
             }
         }
-        
+
         $this->_em->persist($addressbook);
         $this->_em->flush();
+
+        return $addressbook->getId();
     }
 
     /**
@@ -234,12 +234,17 @@ class CardDavBackend implements BackendInterface
      * @return void
      */
     public function deleteAddressBook($addressBookId) {
-	
-	//TODO: delete request for addressbook
-	//TODO: check if this should be done via carddav!!
-	
+
+        $addressbook = $this->_em->getRepository($this->addressbooks_class)->find($addressBookId);
+
+        if (!$addressbook) {
+            return;
+        }
+
+        $addressbook->removeAllCards();
+        $this->_em->delete($addressbook);
     }
-    
+
     /**
      * Returns all cards for a specific addressbook id.
      *
@@ -258,9 +263,9 @@ class CardDavBackend implements BackendInterface
      *
      * @param mixed $addressbookId
      * @return array
-     */  
+     */
     public function getCards($addressbookId) {
-	
+
         $contactGroup = $this->_em->getRepository($this->addressbooks_class)->findOneById($addressbookId);
         $entities = $contactGroup->getContactCollection();
 
@@ -268,9 +273,9 @@ class CardDavBackend implements BackendInterface
         foreach ($entities as $entity) {
             $cards[] = $this->getCardArray($entity, true);
         }
-        return $cards;	
+        return $cards;
     }
-    
+
     /**
      * Returns a specfic card.
      *
@@ -280,16 +285,14 @@ class CardDavBackend implements BackendInterface
      * @param mixed $addressBookId
      * @param string $cardUri
      * @return array
-     */    
+     */
     public function getCard($addressBookId, $cardUri) {
-	$addressBookId = 0;
-	$vCardUid = substr($cardUri, 0, strlen('.vcf')*(-1));
 
-	$entity = $this->_em->getRepository($this->cards_class)->findSingleCardByUid($vCardUid);
-
+        $entity = $this->_em->getRepository($this->cards_class)->findSingleCardByUid($cardUri, $addressBookId);
+        
         return $this->getCardArray($entity, true);
     }
-    
+
     /**
      * Creates a new card.
      *
@@ -314,21 +317,26 @@ class CardDavBackend implements BackendInterface
      * @param string $cardUri
      * @param string $cardData
      * @return string|null
-     */  
+     */
     public function createCard($addressBookId, $cardUri, $cardData) {
-        
+
         $addressbook = $this->_em->getRepository($this->addressbooks_class)->find($addressBookId);
-        
+
+        if ((new \ReflectionClass($this->cards_class))->isAbstract()) {
+            return null;
+        }
+
         $card = new $this->cards_class();
         $card->setVCard($cardData);
         $card->setVCardUid($cardUri);
-        
+        $addressbook->addCard($card);
+
         $this->_em->persist($card);
         $this->_em->flush();
-        
-	return null;
+
+        return $card->getETag();
     }
-    
+
     /**
      * Updates a card.
      *
@@ -353,29 +361,175 @@ class CardDavBackend implements BackendInterface
      * @param string $cardUri
      * @param string $cardData
      * @return string|null
-     */    
+     */
     public function updateCard($addressBookId, $cardUri, $cardData) {
-	        
-        $card = $this->_em->getRepository($this->cards_class)->findSingleCardByUid($addressBookId);
+
+        $card = $this->_em->getRepository($this->cards_class)->findSingleCardByUid($cardUri, $addressBookId);
+
+        if (!$card) {
+            return null;
+        }
+
         $card->setVCard($cardData);
-        
-        $addressbook = $this->_em->getRepository($this->addressbooks_class)->find($addressBookId);
-        $addressbook->updateCTag();
-        
+
         $this->_em->flush();
-        return null;
+
+        return $card->getEtag();
     }
-    
+
     /**
      * Deletes a card
      *
      * @param mixed $addressBookId
      * @param string $cardUri
      * @return bool
-     */    
+     */
     public function deleteCard($addressBookId, $cardUri) {
-	
-        return $this->_em->getRepository($this->cards_class)->deleteCard($cardUri);    
+
+        $addressbook = $this->_em->getRepository($this->addressbooks_class)->find($addressBookId);
+
+        $card = $addressbook->findCard($cardUri);
+
+        if ($card instanceof CardInterface) {
+            return $addressbook->removeCard($card);
+        }
+
+        return false;
+    }
+
+    /**
+     * The getChanges method returns all the changes that have happened, since
+     * the specified syncToken in the specified address book.
+     *
+     * This function should return an array, such as the following:
+     *
+     * [
+     *   'syncToken' => 'The current synctoken',
+     *   'added'   => [
+     *      'new.txt',
+     *   ],
+     *   'modified'   => [
+     *      'modified.txt',
+     *   ],
+     *   'deleted' => [
+     *      'foo.php.bak',
+     *      'old.txt'
+     *   ]
+     * ];
+     *
+     * The returned syncToken property should reflect the *current* syncToken
+     * of the calendar, as reported in the {http://sabredav.org/ns}sync-token
+     * property. This is needed here too, to ensure the operation is atomic.
+     *
+     * If the $syncToken argument is specified as null, this is an initial
+     * sync, and all members should be reported.
+     *
+     * The modified property is an array of nodenames that have changed since
+     * the last token.
+     *
+     * The deleted property is an array with nodenames, that have been deleted
+     * from collection.
+     *
+     * The $syncLevel argument is basically the 'depth' of the report. If it's
+     * 1, you only have to report changes that happened only directly in
+     * immediate descendants. If it's 2, it should also include changes from
+     * the nodes below the child collections. (grandchildren)
+     *
+     * The $limit argument allows a client to specify how many results should
+     * be returned at most. If the limit is not specified, it should be treated
+     * as infinite.
+     *
+     * If the limit (infinite or not) is higher than you're willing to return,
+     * you should throw a Sabre\DAV\Exception\TooMuchMatches() exception.
+     *
+     * If the syncToken is expired (due to data cleanup) or unknown, you must
+     * return null.
+     *
+     * The limit is 'suggestive'. You are free to ignore it.
+     *
+     * @param string $addressBookId
+     * @param string $syncToken
+     * @param int $syncLevel
+     * @param int $limit
+     * @return array
+     */
+    function getChangesForAddressBook($addressBookId, $syncToken, $syncLevel, $limit = null) {
+
+        // the "Doctrine2 behavioral extensions" (https://github.com/Atlantic18/DoctrineExtensions)
+        // are used to log the addressbook-changes
+        $loggableClass = 'Gedmo\Loggable\Entity\LogEntry';
+
+        if (!class_exists($loggableClass)) {
+            return null;
+        }
+
+        /* @var $addressbook \Secotrust\Bundle\SabreDavBundle\Entity\AddressbookInterface */
+        $addressbook = $this->_em->getRepository($this->addressbooks_class)->find($addressBookId);
+
+        if ($addressbook->getSynctoken() === 0) {
+            return null;
+        }
+
+        $result = [
+            'syncToken' => $addressbook->getSynctoken(),
+            'added' => [],
+            'modified' => [],
+            'deleted' => [],
+        ];
+
+        if ($syncToken) {
+
+            // Fetching all changes
+            $repo = $this->_em->getRepository($loggableClass);
+            $logs = $repo->getLogEntries($addressbook);
+
+            $changes = [];
+
+            // This loop ensures that any duplicates are overwritten, only the
+            // last change on a node is relevant.
+            foreach ($logs as $log) {
+                $changes[$addressbook->getUri()] = $log->getAction();
+            }
+
+            foreach ($changes as $uri => $operation) {
+
+                switch ($operation) {
+                    case 'create':
+                        $result['added'][] = $uri;
+                        break;
+                    case 'update':
+                        $result['modified'][] = $uri;
+                        break;
+                    case 'remove':
+                        $result['deleted'][] = $uri;
+                        break;
+                }
+            }
+        } else {
+            // No synctoken supplied, this is the initial sync.
+            $result['added'] = $addressbook->getUri();
+        }
+        return $result;
+    }
+
+    /**
+     * Adds a change record to the addressbookchanges table.
+     *
+     * @param mixed $addressBookId
+     * @param string $objectUri
+     * @param int $operation 1 = add, 2 = modify, 3 = delete
+     * @return void
+     */
+    protected function addChange($addressBookId, $objectUri, $operation) {
+
+        // it is suggested to use the Loggable-Extension for Doctrine to manage
+        // the changes in the entities
+        // https://github.com/Atlantic18/DoctrineExtensions/blob/master/doc/loggable.md
+        //
+        // if the extension is configured in the right way, the changes are logged automatically
+        // configuration-example: https://github.com/Atlantic18/DoctrineExtensions/blob/master/doc/loggable.md#entity-mapping
+
+        return;
     }
 
 }

@@ -10,16 +10,10 @@ namespace Secotrust\Bundle\SabreDavBundle\Entity\Repository;
 interface CardRepositoryInterface {
 
     /**
-     * Find one Card By vCard UID
+     * Find one Card By vCard-UID and Addressbook-id
      * 
      * @param type $uid
+     * @param type $addressBookId
      */
-    public function findSingleCardByUid($uid=null);
-    
-    /**
-     * delete Card by cardUri
-     * 
-     * @param type $cardUri
-     */    
-    public function deleteCard($cardUri);
+    public function findSingleCardByUid($uid=null, $addressBookId=null);
 }
