@@ -49,6 +49,12 @@ class SecotrustSabreDavExtension extends Extension
             $container->getDefinition('secotrust.sabredav_root')->replaceArgument(0, $config['root_dir']);
         }
 
+        // add logo to browser-plugin
+        if ($config['plugins']['browser']) {
+            $container->setParameter('secotrust.sabredav.browser_plugin.logo', $config['browser_logo']);
+            $container->setParameter('secotrust.sabredav.browser_plugin.favicon', $config['favicon']);
+        }     
+        
         // add security-service-class
         if ($config['security_service']){
             $container->setParameter('secotrust.sabredav.acl.securityService', $config['security_service']);
