@@ -62,6 +62,9 @@ class SecotrustSabreDavExtension extends Extension
         
         $container->setParameter('secotrust.cards_class', $config['settings']['cards_class']);
         $container->setParameter('secotrust.addressbooks_class', $config['settings']['addressbooks_class']);
+        $container->setParameter('secotrust.calendarobjects_class', $config['settings']['calendarobjects_class']);
+        $container->setParameter('secotrust.calendar_class', $config['settings']['calendar_class']);
         $container->setParameter('secotrust.principals_class', $config['settings']['principals_class']);
+        $container->setParameter('secotrust.principalgroups_class', $config['settings']['principalgroups_class']);
     }
 }

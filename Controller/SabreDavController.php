@@ -23,8 +23,8 @@ use Symfony\Component\Routing\RouterInterface;
 /**
  * Class SabreDavController
  */
-class SabreDavController
-{
+class SabreDavController {
+
     /**
      * @var Server
      */
@@ -53,10 +53,9 @@ class SabreDavController
      * @param ContainerInterface $container
      * @param Router $router
      */
-    public function __construct(Server $dav, EventDispatcherInterface $dispatcher,  ContainerInterface $container, RouterInterface $router)
-    {
+    public function __construct(Server $dav, EventDispatcherInterface $dispatcher, ContainerInterface $container, RouterInterface $router) {
         $this->dav = $dav;
-        $this->dav->setBaseUri($router->generate('secotrust_sabre_dav'));
+        $this->dav->setBaseUri($router->generate('secotrust_sabre_dav', array()));
 
         $this->container = $container;
         $this->dispatcher = $dispatcher; // TODO needed?
@@ -67,8 +66,7 @@ class SabreDavController
      *
      * @return StreamedResponse
      */
-    public function execAction(Request $request)
-    {
+    public function execAction(Request $request) {
         $dav = $this->dav;
         $callback = function () use ($dav) {
             $dav->exec();

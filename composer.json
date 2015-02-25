@@ -28,6 +28,7 @@
     },
     "suggest": {
         "knplabs/knp-gaufrette-bundle": "0.2.*",
+        "gedmo/doctrine-extensions": "~2.3"
     },
     "autoload": {
         "psr-0": { "Secotrust\\Bundle\\SabreDavBundle": "" }

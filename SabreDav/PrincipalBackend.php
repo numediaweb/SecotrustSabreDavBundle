@@ -334,7 +334,11 @@ class PrincipalBackend extends AbstractBackend {
 
         $principal_data = $this->getPrincipalByPath($principal, true);
 
-        $groupMembership = array($principal['uri']);
+        if (!$principal_data) {
+            return array();
+        }
+        
+        $groupMembership = array($principal);
 
         if ($this->principalgroups_class !== '') {
             foreach ($principal_data->getGroups() as $group) {
