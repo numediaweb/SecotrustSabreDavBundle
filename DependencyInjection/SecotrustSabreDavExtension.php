@@ -44,11 +44,16 @@ class SecotrustSabreDavExtension extends Extension
         }
 	
         // no root dir is set, but webdav plugin is active: throw exception
-		if (!empty($config['root_dir']) && $config['plugins']['webdav']) {        
+        if (!empty($config['root_dir']) && $config['plugins']['webdav']) {        
             //replace argument
             $container->getDefinition('secotrust.sabredav_root')->replaceArgument(0, $config['root_dir']);
         }
 
+        // add security-service-class
+        if ($config['security_service']){
+            $container->setParameter('secotrust.sabredav.acl.securityService', $config['security_service']);
+        }
+        
         $container->setParameter('secotrust.cards_class', $config['settings']['cards_class']);
         $container->setParameter('secotrust.addressbooks_class', $config['settings']['addressbooks_class']);
         $container->setParameter('secotrust.principals_class', $config['settings']['principals_class']);

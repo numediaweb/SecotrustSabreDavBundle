@@ -116,6 +116,7 @@ class AuthBackend implements BackendInterface {
         }
 
         $this->currentUser = $userpass[0];
+        $server->httpRequest->setCurrentUsername($this->currentUser);
 
         return true;
     }

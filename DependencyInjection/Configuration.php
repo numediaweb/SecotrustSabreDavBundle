@@ -17,13 +17,12 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
 /**
  * Class Configuration
  */
-class Configuration implements ConfigurationInterface
-{
+class Configuration implements ConfigurationInterface {
+
     /**
      * {@inheritDoc}
      */
-    public function getConfigTreeBuilder()
-    {
+    public function getConfigTreeBuilder() {
         $treeBuilder = new TreeBuilder();
         $rootNode = $treeBuilder->root('secotrust_sabre_dav');
 
@@ -33,6 +32,18 @@ class Configuration implements ConfigurationInterface
             ->children()
                 ->scalarNode('root_dir')
                     ->example('%kernel.root_dir%/../web/dav/')
+                ->end()
+                ->scalarNode('browser_logo')
+                    ->example('%kernel.root_dir%/../web/logo/sabredav.png')
+                    ->defaultValue('')
+                ->end()
+                ->scalarNode('favicon')
+                    ->example('%kernel.root_dir%/../web/logo/favicon.ico')
+                    ->defaultValue('')
+                ->end()
+                ->scalarNode('security_service')
+                    ->example('sabredav.security_service')
+                    ->defaultValue('')
                 ->end()
                 ->scalarNode('base_uri')
                     ->example($default_base_uri)
@@ -59,7 +70,10 @@ class Configuration implements ConfigurationInterface
                         ->children()
                             ->scalarNode('cards_class')->defaultValue('')->end()		
                             ->scalarNode('addressbooks_class')->defaultValue('')->end()		
+                            ->scalarNode('calendarobjects_class')->defaultValue('')->end()		
+                            ->scalarNode('calendar_class')->defaultValue('')->end()		
                             ->scalarNode('principals_class')->defaultValue('')->end()		
+                            ->scalarNode('principalgroups_class')->defaultValue('')->end()		
                         ->end()
                     ->end()
                 ->end()                

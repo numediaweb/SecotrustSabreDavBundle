@@ -25,6 +25,11 @@ class HttpRequest extends BaseRequest {
     private $request;
 
     /**
+     * @var string
+     */
+    private $currentUsername;
+
+    /**
      * Constructor
      *
      * @param Request $request
@@ -42,4 +47,14 @@ class HttpRequest extends BaseRequest {
     public function setCurrentUsername($username) {
         $this->currentUsername = $username;
     }
+
+    /**
+     * get the current username
+     * 
+     * @return string
+     */
+    public function getCurrentUsername() {
+        return $this->currentUsername;
+    }
+
 }
