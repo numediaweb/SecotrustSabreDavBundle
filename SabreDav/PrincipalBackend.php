@@ -307,15 +307,16 @@ class PrincipalBackend extends AbstractBackend {
 
         $principalObject = $this->getPrincipalByPath($principal, true);
 
-        if ($principalObject instanceof UserInterface) {
-            // principal is a user, not a group
-            throw new DAV\Exception('Group-Principal not found');
+        if (!$principalObject) {
+            throw new \Sabre\DAV\Exception('Principal not found');
         }
 
+        // add current principal to group-list
         $principalArray = $this->getPrincipalArray($principalObject);
         $groupMemberSet[] = $principalArray['uri'];
 
         if ($this->principalgroups_class === '') {
+            // groups-class is not defined: return current principal as only group-member
             return $groupMemberSet;
         }
 
