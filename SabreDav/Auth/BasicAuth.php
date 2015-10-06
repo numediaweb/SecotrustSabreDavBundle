@@ -2,6 +2,8 @@
 
 namespace Secotrust\Bundle\SabreDavBundle\SabreDav\Auth;
 
+use Sabre\HTTP\RequestInterface;
+use Sabre\HTTP\ResponseInterface;
 use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;
 use FOS\UserBundle\Model\UserManagerInterface;
 use Sabre\HTTP\Auth\Basic;
@@ -28,7 +30,7 @@ class BasicAuth extends Basic {
      * @param \Sabre\HTTP\ResponseInterface $response
      * @param UserManagerInterface $user_manager
      */
-    public function __construct($realm, \Sabre\HTTP\RequestInterface $request, \Sabre\HTTP\ResponseInterface $response, UserManagerInterface $user_manager) {
+    public function __construct($realm, RequestInterface $request, ResponseInterface $response, UserManagerInterface $user_manager) {
 
         $this->user_manager = $user_manager;
         parent::__construct($realm, $request, $response);

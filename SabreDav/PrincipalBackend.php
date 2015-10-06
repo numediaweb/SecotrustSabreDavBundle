@@ -11,13 +11,16 @@
 
 namespace Secotrust\Bundle\SabreDavBundle\SabreDav;
 
+use Sabre\DAV\Exception;
+use Sabre\DAV\MkCol;
 use Sabre\DAVACL\PrincipalBackend\AbstractBackend;
+use Sabre\DAVACL\PrincipalBackend\CreatePrincipalSupport;
 use FOS\UserBundle\Model\UserInterface;
 use FOS\UserBundle\Model\GroupInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
-class PrincipalBackend extends AbstractBackend {
+class PrincipalBackend extends AbstractBackend implements CreatePrincipalSupport {
 
     /**
      * @var \Doctrine\ORM\EntityManager
@@ -90,7 +93,7 @@ class PrincipalBackend extends AbstractBackend {
         $this->principalgroups_class = $container->getParameter('secotrust.principalgroups_class');
         $this->user_manager = $container->get('fos_user.user_manager');
 
-        if (!$container->has('fos_user.group_manager')) {
+        if ($container->has('fos_user.group_manager')) {
             $this->group_manager = $container->get('fos_user.group_manager');
         }
     }
@@ -119,6 +122,7 @@ class PrincipalBackend extends AbstractBackend {
             $principal['uri'] = 'principals/' . $principalObject->getName();
         }
 
+        // get all fields from $this->fieldMap, additional to 'uri' and 'id'
         foreach ($this->fieldMap as $key => $value) {
             if (!method_exists($principalObject, $value['getter'])) {
                 continue;
@@ -154,8 +158,10 @@ class PrincipalBackend extends AbstractBackend {
 
         $userlist = $this->_em->getRepository($this->principals_class)->findBy(array('enabled' => true));
         $principals = array();
-
+        
         foreach ($userlist as $user) {
+
+            // due to the lack of the implementation of prefixes, return all users
             $principals[] = $this->getPrincipalArray($user);
         }
 
@@ -380,5 +386,31 @@ class PrincipalBackend extends AbstractBackend {
         }
 
         // TODO: Implement the addition/deletion of new/old members
+
+    }
+
+
+    /**
+     * Creates a new principal.
+     *
+     * This method receives a full path for the new principal. The mkCol object
+     * contains any additional webdav properties specified during the creation
+     * of the principal.
+     *
+     * @param string $path
+     * @param MkCol $mkCol
+     * @return void
+     */
+    function createPrincipal($path, MkCol $mkCol) {
+
+        // create new user
+        $username = str_replace('principal/', '', $path);
+
+        $user = $this->user_manager->createUser();
+        $user->setUsername($username);
+        $user->setForename($username);
+
+        $this->_em->persist($user);
+        $this->_em->flush();
     }
 }

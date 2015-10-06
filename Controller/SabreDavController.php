@@ -17,7 +17,6 @@ use Secotrust\Bundle\SabreDavBundle\SabreDav\HttpResponse;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Routing\RouterInterface;
 
 /**
@@ -36,11 +35,6 @@ class SabreDavController {
     private $dispatcher;
 
     /**
-     * @var ContainerInterface
-     */
-    private $container;
-    
-    /**
      * @var RouterInterface 
      */
     private $router;
@@ -50,14 +44,12 @@ class SabreDavController {
      *
      * @param Server $dav
      * @param EventDispatcherInterface $dispatcher
-     * @param ContainerInterface $container
-     * @param Router $router
+     * @param RouterInterface $router
      */
-    public function __construct(Server $dav, EventDispatcherInterface $dispatcher, ContainerInterface $container, RouterInterface $router) {
+    public function __construct(Server $dav, EventDispatcherInterface $dispatcher, RouterInterface $router) {
         $this->dav = $dav;
         $this->dav->setBaseUri($router->generate('secotrust_sabre_dav', array()));
 
-        $this->container = $container;
         $this->dispatcher = $dispatcher; // TODO needed?
     }
 

@@ -9,7 +9,8 @@
         <parameter key="secotrust.sabredav.server.class">Sabre\DAV\Server</parameter>
         <parameter key="secotrust.sabredav.server.nodes" type="collection">
             <parameter id="secotrust.sabredav_principal_collection" />
-            <parameter id="secotrust.sabredav_carddav_collection" />	
+            <parameter id="secotrust.sabredav_carddav_collection" />
+            <parameter id="secotrust.sabredav_caldav_collection" />
         </parameter>
     </parameters>
 
@@ -17,7 +18,6 @@
         <service id="secotrust.sabredav.controller" class="%secotrust.sabredav.controller.class%">
             <argument type="service" id="secotrust.sabredav.server" />
             <argument type="service" id="event_dispatcher" />
-            <argument type="service" id="service_container" />
             <argument type="service" id="router" />
         </service>
         <service id="secotrust.sabredav.server" class="%secotrust.sabredav.server.class%">
