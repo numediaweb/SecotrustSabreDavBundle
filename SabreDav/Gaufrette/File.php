@@ -11,9 +11,7 @@
 
 namespace Secotrust\Bundle\SabreDavBundle\SabreDav\Gaufrette;
 
-use Sabre\DAV\Exception;
 use Sabre\DAV\File as BaseFile;
-use Sabre\DAV\Sabre;
 
 class File extends BaseFile
 {
@@ -23,7 +21,7 @@ class File extends BaseFile
     protected $file;
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param \Gaufrette\File $file
      */
@@ -33,7 +31,7 @@ class File extends BaseFile
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getName()
     {
@@ -41,7 +39,7 @@ class File extends BaseFile
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getSize()
     {
@@ -49,7 +47,7 @@ class File extends BaseFile
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getLastModified()
     {
@@ -57,7 +55,7 @@ class File extends BaseFile
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function put($data)
     {
@@ -65,7 +63,7 @@ class File extends BaseFile
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function get()
     {
@@ -73,7 +71,7 @@ class File extends BaseFile
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function delete()
     {

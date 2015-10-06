@@ -9,55 +9,57 @@ use FOS\UserBundle\Model\UserManagerInterface;
 use Sabre\HTTP\Auth\Basic;
 
 /**
- * BasicAuth
+ * BasicAuth.
  * 
  * This file extends the basic-auth from sabre-dav
  *
  * @author lduer
  */
-class BasicAuth extends Basic {
-
+class BasicAuth extends Basic
+{
     /**
-     * @var UserManagerInterface 
+     * @var UserManagerInterface
      */
     private $user_manager;
 
     /**
-     * Constructor
+     * Constructor.
      * 
-     * @param string $realm
-     * @param \Sabre\HTTP\RequestInterface $request
+     * @param string                        $realm
+     * @param \Sabre\HTTP\RequestInterface  $request
      * @param \Sabre\HTTP\ResponseInterface $response
-     * @param UserManagerInterface $user_manager
+     * @param UserManagerInterface          $user_manager
      */
-    public function __construct($realm, RequestInterface $request, ResponseInterface $response, UserManagerInterface $user_manager) {
-
+    public function __construct($realm, RequestInterface $request, ResponseInterface $response, UserManagerInterface $user_manager)
+    {
         $this->user_manager = $user_manager;
         parent::__construct($realm, $request, $response);
     }
 
     /**
-     * find username in the user-manager
+     * find username in the user-manager.
      * 
      * @param string $username
+     *
      * @return \FOS\UserBundle\Model\UserInterface
      */
-    private function getUser($username) {
+    private function getUser($username)
+    {
         $user = $this->user_manager->findUserByUsername($username);
 
         return $user;
     }
 
     /**
-     * Return user-credentials; returned password is encoded via "security.encoder_factory"
+     * Return user-credentials; returned password is encoded via "security.encoder_factory".
      * 
      * @param \Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface $encoder_service
-     * @return array|boolean
+     *
+     * @return array|bool
      */
-    public function getCredentials(EncoderFactoryInterface $encoder_service = null) {
-
+    public function getCredentials(EncoderFactoryInterface $encoder_service = null)
+    {
         if (($user = $this->request->getRawServerValue('PHP_AUTH_USER')) && ($pass = $this->request->getRawServerValue('PHP_AUTH_PW'))) {
-
             $credentials = array($user, $pass);
         } else {
 
@@ -70,11 +72,13 @@ class BasicAuth extends Basic {
                 $auth = $this->request->getRawServerValue('REDIRECT_HTTP_AUTHORIZATION');
             }
 
-            if (!$auth)
+            if (!$auth) {
                 return false;
+            }
 
-            if (strpos(strtolower($auth), 'basic') !== 0)
+            if (strpos(strtolower($auth), 'basic') !== 0) {
                 return false;
+            }
 
             $credentials = explode(':', base64_decode(substr($auth, 6)), 2);
         }

@@ -17,7 +17,7 @@ use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
- * Class PluginPass
+ * Class PluginPass.
  */
 class PluginPass implements CompilerPassInterface
 {

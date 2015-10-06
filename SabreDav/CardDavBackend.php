@@ -18,8 +18,8 @@ use Sabre\DAV\Exception\BadRequest;
 use Secotrust\Bundle\SabreDavBundle\Entity\CardInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
-class CardDavBackend extends AbstractBackend implements SyncSupport {
-
+class CardDavBackend extends AbstractBackend implements SyncSupport
+{
     /**
      * @var ContainerInterface
      */
@@ -31,24 +31,25 @@ class CardDavBackend extends AbstractBackend implements SyncSupport {
     private $_em;
 
     /**
-     * @var string 
+     * @var string
      */
     private $addressbooks_class;
 
     /**
-     * @var string 
+     * @var string
      */
     private $cards_class;
 
     /**
-     * Create array with Card-Data
+     * Create array with Card-Data.
      *
      * @param CardInterface $entity
-     * @param bool $show_id
+     * @param bool          $show_id
+     *
      * @return array|bool
      */
-    private function getCardArray($entity, $show_id = false) {
-
+    private function getCardArray($entity, $show_id = false)
+    {
         if (!($entity instanceof CardInterface)) {
             return false;
         }
@@ -56,7 +57,7 @@ class CardDavBackend extends AbstractBackend implements SyncSupport {
         $card = array(
             'id' => $entity->getId(),
             'carddata' => $entity->getVCard(),
-            'uri' => $entity->getVCardUid() . '.vcf',
+            'uri' => $entity->getVCardUid().'.vcf',
             'lastmodified' => $entity->getLastmodified(),
             'size' => strlen($entity->getVCard()),
             'etag' => $entity->getETag(),
@@ -70,12 +71,12 @@ class CardDavBackend extends AbstractBackend implements SyncSupport {
     }
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param ContainerInterface $container
      */
-    public function __construct(ContainerInterface $container) {
-        
+    public function __construct(ContainerInterface $container)
+    {
         $this->_em = $container->get('doctrine')->getManager();
 
         $this->addressbooks_class = $container->getParameter('secotrust.addressbooks_class');
@@ -97,24 +98,24 @@ class CardDavBackend extends AbstractBackend implements SyncSupport {
      *   {http://calendarserver.org/ns/}getctag
      *
      * @param string $principalUri
+     *
      * @return array
      */
-    public function getAddressBooksForUser($principalUri) {
-
+    public function getAddressBooksForUser($principalUri)
+    {
         $addressBooks = array();
 
         $entities = $this->_em->getRepository($this->addressbooks_class)->findAllPrincipalAddressbooks($principalUri);
 
         foreach ($entities as $entity) {
-
             $addressBooks[] = array(
                 'id' => $entity->getId(),
                 'uri' => $entity->getUriLabel(),
                 'principaluri' => $principalUri,
                 '{DAV:}displayname' => $entity->getLabel(),
-                '{' . CardDAV\Plugin::NS_CARDDAV . '}addressbook-description' => $entity->getDescription(),
+                '{'.CardDAV\Plugin::NS_CARDDAV.'}addressbook-description' => $entity->getDescription(),
                 '{http://calendarserver.org/ns/}getctag' => $entity->getSyncToken(),
-                '{http://sabredav.org/ns}sync-token' => $entity->getSyncToken()
+                '{http://sabredav.org/ns}sync-token' => $entity->getSyncToken(),
             );
         }
 
@@ -133,15 +134,14 @@ class CardDavBackend extends AbstractBackend implements SyncSupport {
      *
      * Read the PropPatch documenation for more info and examples.
      *
-     * @param string $addressBookId
+     * @param string               $addressBookId
      * @param \Sabre\DAV\PropPatch $propPatch
-     * @return void
      */
-    public function updateAddressBook($addressBookId, \Sabre\DAV\PropPatch $propPatch) {
-
+    public function updateAddressBook($addressBookId, \Sabre\DAV\PropPatch $propPatch)
+    {
         $supportedProperties = [
             '{DAV:}displayname',
-            '{' . CardDAV\Plugin::NS_CARDDAV . '}addressbook-description',
+            '{'.CardDAV\Plugin::NS_CARDDAV.'}addressbook-description',
         ];
 
         $addressbook = $this->_em->getRepository($this->addressbooks_class)->find($addressBookId);
@@ -150,16 +150,15 @@ class CardDavBackend extends AbstractBackend implements SyncSupport {
             return;
         }
 
-        $propPatch->handle($supportedProperties, function($mutations) use ($addressbook) {
+        $propPatch->handle($supportedProperties, function ($mutations) use ($addressbook) {
 
             $updates = [];
             foreach ($mutations as $property => $newValue) {
-
                 switch ($property) {
                     case '{DAV:}displayname' :
                         $updates['setLabel'] = $newValue;
                         break;
-                    case '{' . CardDAV\Plugin::NS_CARDDAV . '}addressbook-description' :
+                    case '{'.CardDAV\Plugin::NS_CARDDAV.'}addressbook-description' :
                         $updates['setDescription'] = $newValue;
                         break;
                 }
@@ -179,16 +178,16 @@ class CardDavBackend extends AbstractBackend implements SyncSupport {
     }
 
     /**
-     * Creates a new address book
+     * Creates a new address book.
      *
      * @param string $principalUri
-     * @param string $url Just the 'basename' of the url.
-     * @param array $properties
-     * @return null
+     * @param string $url          Just the 'basename' of the url.
+     * @param array  $properties
+     *
      * @throws BadRequest
      */
-    public function createAddressBook($principalUri, $url, array $properties) {
-
+    public function createAddressBook($principalUri, $url, array $properties)
+    {
         $values = array(
             'setLabel' => null,
             'setDescription' => null,
@@ -197,22 +196,21 @@ class CardDavBackend extends AbstractBackend implements SyncSupport {
         );
 
         foreach ($properties as $property => $newValue) {
-
             switch ($property) {
                 case '{DAV:}displayname' :
                     $values['setLabel'] = $newValue;
                     break;
-                case '{' . CardDAV\Plugin::NS_CARDDAV . '}addressbook-description' :
+                case '{'.CardDAV\Plugin::NS_CARDDAV.'}addressbook-description' :
                     $values['setDescription'] = $newValue;
                     break;
                 default :
-                    throw new BadRequest('Unknown property: ' . $property);
+                    throw new BadRequest('Unknown property: '.$property);
             }
         }
 
         // check if current addressbooks-class can be instantiated
         if ((new \ReflectionClass($this->addressbooks_class))->isAbstract()) {
-            return null;
+            return;
         }
 
         $addressbook = new $this->addressbooks_class();
@@ -230,13 +228,12 @@ class CardDavBackend extends AbstractBackend implements SyncSupport {
     }
 
     /**
-     * Deletes an entire addressbook and all its contents
+     * Deletes an entire addressbook and all its contents.
      *
      * @param mixed $addressBookId
-     * @return void
      */
-    public function deleteAddressBook($addressBookId) {
-
+    public function deleteAddressBook($addressBookId)
+    {
         $addressbook = $this->_em->getRepository($this->addressbooks_class)->find($addressBookId);
 
         if (!$addressbook) {
@@ -264,10 +261,11 @@ class CardDavBackend extends AbstractBackend implements SyncSupport {
      * This may speed up certain requests, especially with large cards.
      *
      * @param mixed $addressbookId
+     *
      * @return array
      */
-    public function getCards($addressbookId) {
-
+    public function getCards($addressbookId)
+    {
         $contactGroup = $this->_em->getRepository($this->addressbooks_class)->findOneById($addressbookId);
         $entities = $contactGroup->getContactCollection();
 
@@ -275,6 +273,7 @@ class CardDavBackend extends AbstractBackend implements SyncSupport {
         foreach ($entities as $entity) {
             $cards[] = $this->getCardArray($entity, true);
         }
+
         return $cards;
     }
 
@@ -284,14 +283,15 @@ class CardDavBackend extends AbstractBackend implements SyncSupport {
      * The same set of properties must be returned as with getCards. The only
      * exception is that 'carddata' is absolutely required.
      *
-     * @param mixed $addressBookId
+     * @param mixed  $addressBookId
      * @param string $cardUri
+     *
      * @return array
      */
-    public function getCard($addressBookId, $cardUri) {
-
+    public function getCard($addressBookId, $cardUri)
+    {
         $entity = $this->_em->getRepository($this->cards_class)->findSingleCardByUid($cardUri, $addressBookId);
-        
+
         return $this->getCardArray($entity, true);
     }
 
@@ -315,17 +315,18 @@ class CardDavBackend extends AbstractBackend implements SyncSupport {
      *
      * If you don't return an ETag, you can just return null.
      *
-     * @param mixed $addressBookId
+     * @param mixed  $addressBookId
      * @param string $cardUri
      * @param string $cardData
+     *
      * @return string|null
      */
-    public function createCard($addressBookId, $cardUri, $cardData) {
-
+    public function createCard($addressBookId, $cardUri, $cardData)
+    {
         $addressbook = $this->_em->getRepository($this->addressbooks_class)->find($addressBookId);
 
         if ((new \ReflectionClass($this->cards_class))->isAbstract()) {
-            return null;
+            return;
         }
 
         $card = new $this->cards_class();
@@ -359,17 +360,18 @@ class CardDavBackend extends AbstractBackend implements SyncSupport {
      *
      * If you don't return an ETag, you can just return null.
      *
-     * @param mixed $addressBookId
+     * @param mixed  $addressBookId
      * @param string $cardUri
      * @param string $cardData
+     *
      * @return string|null
      */
-    public function updateCard($addressBookId, $cardUri, $cardData) {
-
+    public function updateCard($addressBookId, $cardUri, $cardData)
+    {
         $card = $this->_em->getRepository($this->cards_class)->findSingleCardByUid($cardUri, $addressBookId);
 
         if (!$card) {
-            return null;
+            return;
         }
 
         $card->setVCard($cardData);
@@ -380,14 +382,15 @@ class CardDavBackend extends AbstractBackend implements SyncSupport {
     }
 
     /**
-     * Deletes a card
+     * Deletes a card.
      *
-     * @param mixed $addressBookId
+     * @param mixed  $addressBookId
      * @param string $cardUri
+     *
      * @return bool
      */
-    public function deleteCard($addressBookId, $cardUri) {
-
+    public function deleteCard($addressBookId, $cardUri)
+    {
         $addressbook = $this->_em->getRepository($this->addressbooks_class)->find($addressBookId);
 
         $card = $addressbook->findCard($cardUri);
@@ -451,25 +454,27 @@ class CardDavBackend extends AbstractBackend implements SyncSupport {
      *
      * @param string $addressBookId
      * @param string $syncToken
-     * @param int $syncLevel
-     * @param int $limit
+     * @param int    $syncLevel
+     * @param int    $limit
+     *
      * @return array
      */
-    function getChangesForAddressBook($addressBookId, $syncToken, $syncLevel, $limit = null) {
+    public function getChangesForAddressBook($addressBookId, $syncToken, $syncLevel, $limit = null)
+    {
 
         // the "Doctrine2 behavioral extensions" (https://github.com/Atlantic18/DoctrineExtensions)
         // are used to log the addressbook-changes
         $loggableClass = 'Gedmo\Loggable\Entity\LogEntry';
 
         if (!class_exists($loggableClass)) {
-            return null;
+            return;
         }
 
         /* @var $addressbook \Secotrust\Bundle\SabreDavBundle\Entity\AddressbookInterface */
         $addressbook = $this->_em->getRepository($this->addressbooks_class)->find($addressBookId);
 
         if ($addressbook->getSynctoken() === 0) {
-            return null;
+            return;
         }
 
         $result = [
@@ -494,7 +499,6 @@ class CardDavBackend extends AbstractBackend implements SyncSupport {
             }
 
             foreach ($changes as $uri => $operation) {
-
                 switch ($operation) {
                     case 'create':
                         $result['added'][] = $uri;
@@ -511,18 +515,19 @@ class CardDavBackend extends AbstractBackend implements SyncSupport {
             // No synctoken supplied, this is the initial sync.
             $result['added'] = $addressbook->getUri();
         }
+
         return $result;
     }
 
     /**
      * Adds a change record to the addressbookchanges table.
      *
-     * @param mixed $addressBookId
+     * @param mixed  $addressBookId
      * @param string $objectUri
-     * @param int $operation 1 = add, 2 = modify, 3 = delete
-     * @return void
+     * @param int    $operation     1 = add, 2 = modify, 3 = delete
      */
-    protected function addChange($addressBookId, $objectUri, $operation) {
+    protected function addChange($addressBookId, $objectUri, $operation)
+    {
 
         // it is suggested to use the Loggable-Extension for Doctrine to manage
         // the changes in the entities
@@ -533,5 +538,4 @@ class CardDavBackend extends AbstractBackend implements SyncSupport {
 
         return;
     }
-
 }

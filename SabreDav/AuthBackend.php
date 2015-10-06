@@ -15,13 +15,12 @@ use Sabre\DAV\Auth\Backend\BackendInterface;
 use Sabre\DAV\Exception;
 use Sabre\HTTP\RequestInterface;
 use Sabre\HTTP\ResponseInterface;
-use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\Event;
 
-class AuthBackend implements BackendInterface {
-
+class AuthBackend implements BackendInterface
+{
     /**
      * @var ContainerInterface
      */
@@ -48,7 +47,7 @@ class AuthBackend implements BackendInterface {
     private $dispatcher;
 
     /**
-     * @var string 
+     * @var string
      */
     protected $currentUser;
 
@@ -70,13 +69,13 @@ class AuthBackend implements BackendInterface {
     protected $principalPrefix = 'principals/';
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param ContainerInterface $container
      * @param $realm
      */
-    public function __construct(ContainerInterface $container, $realm) {
-
+    public function __construct(ContainerInterface $container, $realm)
+    {
         $this->container = $container;
         $this->realm = $realm;
 
@@ -88,14 +87,15 @@ class AuthBackend implements BackendInterface {
 
     /**
      * Checks if username and password are valid. (Checked by the FOSUserManager)
-     * Returns 
+     * Returns.
      *
      * @param $username
      * @param $passwordHash
+     *
      * @return bool
      */
-    public function validateUserPass($username, $passwordHash) {
-
+    public function validateUserPass($username, $passwordHash)
+    {
         $user = $this->user_manager->findUserByUsername($username);
 
         if (is_null($user)) {
@@ -103,7 +103,7 @@ class AuthBackend implements BackendInterface {
         }
 
         if ($passwordHash === $user->getPassword()) {
-//            $this->userLoginAction($user, $passwordHash);
+            //            $this->userLoginAction($user, $passwordHash);
             return true;
         }
 
@@ -111,7 +111,7 @@ class AuthBackend implements BackendInterface {
     }
 
     /**
-     * add the symfony-login "manually" 
+     * add the symfony-login "manually".
      * 
      * use the symfony token-storage for the generated UsernamePasswordToken 
      * to access the (logged in) user later (e.g. to check for roles or permissions)
@@ -124,7 +124,8 @@ class AuthBackend implements BackendInterface {
      * @param \FOS\UserBundle\Model\UserInterface $user
      * @param $passwordHash
      */
-    private function userLoginAction(\FOS\UserBundle\Model\UserInterface $user, $passwordHash) {
+    private function userLoginAction(\FOS\UserBundle\Model\UserInterface $user, $passwordHash)
+    {
         // call the pre-login-event        
         $event = new Event();
         $this->dispatcher->dispatch('secotrust.user_login.before', $event);
@@ -143,9 +144,10 @@ class AuthBackend implements BackendInterface {
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
-    public function getCurrentUser() {
+    public function getCurrentUser()
+    {
         return $this->currentUser;
     }
 
@@ -173,30 +175,32 @@ class AuthBackend implements BackendInterface {
      *
      * principals/users/[username]
      *
-     * @param RequestInterface $request
+     * @param RequestInterface  $request
      * @param ResponseInterface $response
+     *
      * @return array
+     *
      * @throws Exception
      */
-    public function check(RequestInterface $request, ResponseInterface $response) {
-
+    public function check(RequestInterface $request, ResponseInterface $response)
+    {
         $auth = new Auth\BasicAuth($this->realm, $request, $response, $this->user_manager);
         $userpass = $auth->getCredentials($this->encoder_service);
 
         // No username was given
-        if ($userpass === false)  {
+        if ($userpass === false) {
             return [false, "No 'Authorization' header found. Either the client didn't send one, or the server is mis-configured"];
         }
 
         // Authenticates the user
         if (!$this->validateUserPass($userpass[0], $userpass[1])) {
-            return [false, "Username or password was incorrect"];
+            return [false, 'Username or password was incorrect'];
         }
 
         $this->currentUser = $userpass[0];
         $request->setCurrentUsername($this->currentUser);
 
-        return [true, $this->principalPrefix . $userpass[0]];
+        return [true, $this->principalPrefix.$userpass[0]];
     }
 
     /**
@@ -216,12 +220,11 @@ class AuthBackend implements BackendInterface {
      * append your own WWW-Authenticate header instead of overwriting the
      * existing one.
      *
-     * @param RequestInterface $request
+     * @param RequestInterface  $request
      * @param ResponseInterface $response
-     * @return void
      */
-    public function challenge(RequestInterface $request, ResponseInterface $response) {
-
+    public function challenge(RequestInterface $request, ResponseInterface $response)
+    {
         $auth = new Auth\BasicAuth($this->realm, $request, $response, $this->user_manager);
         $userpass = $auth->getCredentials($this->encoder_service);
 

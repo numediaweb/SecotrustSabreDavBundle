@@ -5,12 +5,12 @@ namespace Secotrust\Bundle\SabreDavBundle\SabreDav\Acl;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Description of SecurityManager
+ * Description of SecurityManager.
  *
  * @author lduer
  */
-class SecurityManager {
-
+class SecurityManager
+{
     /**
      * @var ContainerInterface
      */
@@ -22,19 +22,19 @@ class SecurityManager {
     protected $token;
 
     /**
-     * authorization checker
+     * authorization checker.
      * 
      * @var Symfony\Component\Security\Core\Authorization\AuthorizationChecker
      */
     protected $authorizationChecker;
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param ContainerInterface $container
      */
-    public function __construct(ContainerInterface $container) {
-
+    public function __construct(ContainerInterface $container)
+    {
         $this->container = $container;
         $this->token = $container->get('security.token_storage')->getToken();
         $this->authorizationChecker = $container->get('security.authorization_checker');
@@ -42,7 +42,7 @@ class SecurityManager {
 
     /**
      * returns the ACL list in the following format:<br>
-     * <code>   return array('read', 'write', 'delete');</code>
+     * <code>   return array('read', 'write', 'delete');</code>.
      * 
      * consider: 
      * null will be returned to tell the AclPlugin to use the default Node-Acl (e.g. if no ACL was found for this entry)
@@ -53,9 +53,9 @@ class SecurityManager {
      * @param $objectClass
      * @param $objectIdentifier
      * @param null $groupIdentifier
-     * @return null
      */
-    public function getACL($username, $objectClass, $objectIdentifier, $groupIdentifier = null) {
-        return null;
+    public function getACL($username, $objectClass, $objectIdentifier, $groupIdentifier = null)
+    {
+        return;
     }
 }

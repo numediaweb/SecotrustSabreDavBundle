@@ -15,19 +15,20 @@ use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
 /**
- * Class Configuration
+ * Class Configuration.
  */
-class Configuration implements ConfigurationInterface {
-
+class Configuration implements ConfigurationInterface
+{
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
-    public function getConfigTreeBuilder() {
+    public function getConfigTreeBuilder()
+    {
         $treeBuilder = new TreeBuilder();
         $rootNode = $treeBuilder->root('secotrust_sabre_dav');
 
         $default_base_uri = '/app_dev.php/remote';
-	
+
         $rootNode
             ->children()
                 ->scalarNode('root_dir')
@@ -68,15 +69,15 @@ class Configuration implements ConfigurationInterface {
                 ->arrayNode('settings')
                     ->addDefaultsIfNotSet()
                         ->children()
-                            ->scalarNode('cards_class')->defaultValue('')->end()		
-                            ->scalarNode('addressbooks_class')->defaultValue('')->end()		
-                            ->scalarNode('calendarobjects_class')->defaultValue('')->end()		
-                            ->scalarNode('calendar_class')->defaultValue('')->end()		
-                            ->scalarNode('principals_class')->defaultValue('')->end()		
-                            ->scalarNode('principalgroups_class')->defaultValue('')->end()		
+                            ->scalarNode('cards_class')->defaultValue('')->end()
+                            ->scalarNode('addressbooks_class')->defaultValue('')->end()
+                            ->scalarNode('calendarobjects_class')->defaultValue('')->end()
+                            ->scalarNode('calendar_class')->defaultValue('')->end()
+                            ->scalarNode('principals_class')->defaultValue('')->end()
+                            ->scalarNode('principalgroups_class')->defaultValue('')->end()
                         ->end()
                     ->end()
-                ->end()                
+                ->end()
             ->end();
 
         return $treeBuilder;

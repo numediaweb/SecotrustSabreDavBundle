@@ -3,17 +3,17 @@
 namespace Secotrust\Bundle\SabreDavBundle\Entity\Repository;
 
 /**
- * Description of CardRepositoryInterface
+ * Class CardRepositoryInterface.
  *
  * @author lduer
  */
-interface CardRepositoryInterface {
-
+interface CardRepositoryInterface
+{
     /**
-     * Find one Card By vCard-UID and Addressbook-id
-     * 
+     * Find one Card By vCard-UID and Addressbook-id.
+     *
      * @param string $uid
      * @param string $addressBookId
      */
-    public function findSingleCardByUid($uid=null, $addressBookId=null);
+    public function findSingleCardByUid($uid = null, $addressBookId = null);
 }

@@ -20,10 +20,10 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\RouterInterface;
 
 /**
- * Class SabreDavController
+ * Class SabreDavController.
  */
-class SabreDavController {
-
+class SabreDavController
+{
     /**
      * @var Server
      */
@@ -35,18 +35,19 @@ class SabreDavController {
     private $dispatcher;
 
     /**
-     * @var RouterInterface 
+     * @var RouterInterface
      */
     private $router;
-    
+
     /**
-     * Constructor
+     * Constructor.
      *
-     * @param Server $dav
+     * @param Server                   $dav
      * @param EventDispatcherInterface $dispatcher
-     * @param RouterInterface $router
+     * @param RouterInterface          $router
      */
-    public function __construct(Server $dav, EventDispatcherInterface $dispatcher, RouterInterface $router) {
+    public function __construct(Server $dav, EventDispatcherInterface $dispatcher, RouterInterface $router)
+    {
         $this->dav = $dav;
         $this->dav->setBaseUri($router->generate('secotrust_sabre_dav', array()));
 
@@ -58,7 +59,8 @@ class SabreDavController {
      *
      * @return StreamedResponse
      */
-    public function execAction(Request $request) {
+    public function execAction(Request $request)
+    {
         $dav = $this->dav;
         $callback = function () use ($dav) {
             $dav->exec();

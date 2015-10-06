@@ -2,113 +2,113 @@
 
 namespace Secotrust\Bundle\SabreDavBundle\Entity;
 
-use Doctrine\ORM\Mapping as ORM;
-
 /**
- * Description of AddressbookInterface
+ * Class AddressbookInterface.
  *
  * @author lduer
  */
-interface AddressbookInterface {
-
+interface AddressbookInterface
+{
     /**
-     * Get id
+     * Get id.
      *
-     * @return integer 
+     * @return int
      */
     public function getId();
-    
+
     /**
-     * Get label
+     * Get label.
      *
-     * @return string 
+     * @return string
      */
     public function getLabel();
-    
+
     /**
-     * Set label
+     * Set label.
      *
      * @param string $label
+     *
      * @return $this
      */
     public function setLabel($label);
-       
+
     /**
-     * Get description
+     * Get description.
      *
-     * @return string 
+     * @return string
      */
     public function getDescription();
-    
+
     /**
-     * Set description
+     * Set description.
      *
      * @param string $description
+     *
      * @return $this
      */
     public function setDescription($description);
-    
+
     /**
-     * Get the synctoken of the current CTag
-     * 
+     * Get the synctoken of the current CTag.
+     *
      * @return string
      */
     public function getSynctoken();
-    
+
     /**
-     * updates the synctoken of the current Group 
-     * 
+     * updates the synctoken of the current Group.
+     *
      * @return $this
      */
     public function updateSynctoken();
-    
+
     /**
-     * get the Uri
-     * 
+     * get the Uri.
+     *
      * @return string
-     */    
+     */
     public function getUri();
 
     /**
-     * Get all Cars for current Addressbook
-     * 
+     * Get all Cars for current Addressbook.
+     *
      * @return array
      */
     public function getCards();
-    
+
     /**
-     * Search Card by URI in current Addressbook
-     * 
+     * Search Card by URI in current Addressbook.
+     *
      * @param string $uri
      */
     public function findCard($uri);
 
     /**
-     * Adds the given card to the current Addressbook
-     * 
+     * Adds the given card to the current Addressbook.
+     *
      * @param \Secotrust\Bundle\SabreDavBundle\Entity\CardInterface $card
      */
     public function addCard(CardInterface $card);
-    
+
     /**
-     * Remove the given card from the current Addressbook
-     * 
+     * Remove the given card from the current Addressbook.
+     *
      * Caution: Check the field-configuration & your field-connections<br>
      * and use the desired setting, if you want to delete the cards <br>
      * - either only from the current Addressbook <br>
-     * - or from the cards-table too 
-     * 
+     * - or from the cards-table too
+     *
      * @param \Secotrust\Bundle\SabreDavBundle\Entity\CardInterface $card
-     * @return boolean
+     *
+     * @return bool
      */
     public function removeCard(CardInterface $card);
-    
+
     /**
      * Remove all Cards from current Addressbook.
-     * 
-     * Possible solution: use <code>$cards = $this->getCards()</code> and 
+     *
+     * Possible solution: use <code>$cards = $this->getCards()</code> and
      * <code>$this->removeCard($card)</code> to remove all cards
      */
     public function removeAllCards();
-    
 }

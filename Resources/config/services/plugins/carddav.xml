@@ -14,16 +14,16 @@
         <service id="secotrust.sabredav_carddav_backend" class="%secotrust.sabredav.carddav_backend.class%" public="false">
             <argument type="service" id="service_container" />
         </service>
-		
+
         <service id="secotrust.sabredav_carddav_plugin" class="%secotrust.sabredav.carddav_plugin.class%" public="false">
             <tag name="secotrust.sabredav.plugin" />
         </service>
-	
+
         <service id="secotrust.sabredav_carddav_collection" class="%secotrust.sabredav.carddav_collection.class%" public="false">
             <argument type="service" id="secotrust.sabredav_principal_backend"/>
             <argument type="service" id="secotrust.sabredav_carddav_backend" />
             <tag name="secotrust.sabredav.collection" />
-        </service>	
+        </service>
 
     </services>
 </container>

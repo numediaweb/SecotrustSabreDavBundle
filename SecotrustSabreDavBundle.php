@@ -17,7 +17,7 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 /**
- * Class SecotrustSabreDavBundle
+ * Class SecotrustSabreDavBundle.
  */
 class SecotrustSabreDavBundle extends Bundle
 {

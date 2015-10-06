@@ -17,11 +17,10 @@ use Sabre\DAVACL\PrincipalBackend\AbstractBackend;
 use Sabre\DAVACL\PrincipalBackend\CreatePrincipalSupport;
 use FOS\UserBundle\Model\UserInterface;
 use FOS\UserBundle\Model\GroupInterface;
-use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
-class PrincipalBackend extends AbstractBackend implements CreatePrincipalSupport {
-
+class PrincipalBackend extends AbstractBackend implements CreatePrincipalSupport
+{
     /**
      * @var \Doctrine\ORM\EntityManager
      */
@@ -38,7 +37,7 @@ class PrincipalBackend extends AbstractBackend implements CreatePrincipalSupport
     private $group_manager;
 
     /**
-     * @var string 
+     * @var string
      */
     private $principals_class;
 
@@ -48,19 +47,19 @@ class PrincipalBackend extends AbstractBackend implements CreatePrincipalSupport
     private $principalgroups_class;
 
     /**
-     * A list of additional fields to support
+     * A list of additional fields to support.
      *
      * @var array
      */
     protected $fieldMap = array(
-        /**
+        /*
          * This property can be used to display the users' real name.
          */
         '{DAV:}displayname' => array(
             'getter' => 'getUsername',
-            'setter' => 'setUsername'
+            'setter' => 'setUsername',
         ),
-        /**
+        /*
          * This property is actually used by the CardDAV plugin, where it gets
          * mapped to {http://calendarserver.orgi/ns/}me-card.
          *
@@ -72,7 +71,7 @@ class PrincipalBackend extends AbstractBackend implements CreatePrincipalSupport
             'getter' => 'getVCardUrl',
             'setter' => 'setVCardUrl',
         ),
-        /**
+        /*
          * This is the users' primary email-address.
          */
         '{http://sabredav.org/ns}email-address' => array(
@@ -82,12 +81,12 @@ class PrincipalBackend extends AbstractBackend implements CreatePrincipalSupport
     );
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param ContainerInterface $container
      */
-    public function __construct(ContainerInterface $container) {
-
+    public function __construct(ContainerInterface $container)
+    {
         $this->_em = $container->get('doctrine')->getManager();
         $this->principals_class = $container->getParameter('secotrust.principals_class');
         $this->principalgroups_class = $container->getParameter('secotrust.principalgroups_class');
@@ -99,15 +98,17 @@ class PrincipalBackend extends AbstractBackend implements CreatePrincipalSupport
     }
 
     /**
-     * get Array with Principal-Data from User-Object
+     * get Array with Principal-Data from User-Object.
      *
      * @param UserInterface|GroupInterface $principalObject
-     * @param bool $show_id
+     * @param bool                         $show_id
+     *
      * @return array
+     *
      * @throws Exception
      */
-    private function getPrincipalArray($principalObject, $show_id = false) {
-
+    private function getPrincipalArray($principalObject, $show_id = false)
+    {
         if (!($principalObject instanceof UserInterface) && !($principalObject instanceof GroupInterface)) {
             throw new Exception('$principalObject must be of type UserInterface of GroupInterface');
         }
@@ -118,9 +119,9 @@ class PrincipalBackend extends AbstractBackend implements CreatePrincipalSupport
         }
 
         if ($principalObject instanceof UserInterface) {
-            $principal['uri'] = 'principals/' . $principalObject->getUsername();
+            $principal['uri'] = 'principals/'.$principalObject->getUsername();
         } else {
-            $principal['uri'] = 'principals/' . $principalObject->getName();
+            $principal['uri'] = 'principals/'.$principalObject->getName();
         }
 
         // get all fields from $this->fieldMap, additional to 'uri' and 'id'
@@ -153,13 +154,14 @@ class PrincipalBackend extends AbstractBackend implements CreatePrincipalSupport
      *     you have an email address, use this property.
      *
      * @param string $prefixPath
+     *
      * @return array
      */
-    public function getPrincipalsByPrefix($prefixPath) {
-
+    public function getPrincipalsByPrefix($prefixPath)
+    {
         $userlist = $this->_em->getRepository($this->principals_class)->findBy(array('enabled' => true));
         $principals = array();
-        
+
         foreach ($userlist as $user) {
 
             // due to the lack of the implementation of prefixes, return all users
@@ -175,12 +177,14 @@ class PrincipalBackend extends AbstractBackend implements CreatePrincipalSupport
      * getPrincipalsByPrefix.
      *
      * @param string $path
-     * @param bool $getObject
+     * @param bool   $getObject
+     *
      * @return array|GroupInterface|UserInterface|void
+     *
      * @throws Exception
      */
-    public function getPrincipalByPath($path, $getObject = false) {
-
+    public function getPrincipalByPath($path, $getObject = false)
+    {
         $name = str_replace('principals/', '', $path);
 
         // get username from path-string, if string contains additional slashes (e.g. admin/calendar-proxy-read)
@@ -191,7 +195,6 @@ class PrincipalBackend extends AbstractBackend implements CreatePrincipalSupport
         $user = $this->user_manager->findUserByUsername($name);
 
         if ($user === null) {
-
             if (!$this->group_manager) {
                 return;
             }
@@ -206,6 +209,7 @@ class PrincipalBackend extends AbstractBackend implements CreatePrincipalSupport
             if ($getObject === true) {
                 return $group;
             }
+
             return $this->getPrincipalArray($group, true);
         }
 
@@ -228,26 +232,26 @@ class PrincipalBackend extends AbstractBackend implements CreatePrincipalSupport
      *
      * Read the PropPatch documenation for more info and examples.
      * 
-     * @param string $path
+     * @param string               $path
      * @param \Sabre\DAV\PropPatch $propPatch
      */
-    public function updatePrincipal($path, \Sabre\DAV\PropPatch $propPatch) {
-
+    public function updatePrincipal($path, \Sabre\DAV\PropPatch $propPatch)
+    {
         $principal = $this->getPrincipalByPath($path, true);
 
         if (empty($principal)) {
             return;
         }
 
-        $propPatch->handle(array_keys($this->fieldMap), function($properties) use ($principal) {
+        $propPatch->handle(array_keys($this->fieldMap), function ($properties) use ($principal) {
 
             foreach ($properties as $key => $value) {
-
                 $setter = $this->fieldMap[$key]['setter'];
                 $principal->$setter($value);
             }
 
             $this->_em->flush();
+
             return true;
         });
     }
@@ -277,14 +281,14 @@ class PrincipalBackend extends AbstractBackend implements CreatePrincipalSupport
      * from working.
      *
      * @param string $prefixPath
-     * @param array $searchProperties
+     * @param array  $searchProperties
      * @param string $test
+     *
      * @return array
      */
-    public function searchPrincipals($prefixPath, array $searchProperties, $test = 'allof') {
-
+    public function searchPrincipals($prefixPath, array $searchProperties, $test = 'allof')
+    {
         foreach ($searchProperties as $property => $value) {
-
             switch ($property) {
 
                 case '{DAV:}displayname' :
@@ -305,14 +309,16 @@ class PrincipalBackend extends AbstractBackend implements CreatePrincipalSupport
     }
 
     /**
-     * Returns the list of members for a group-principal
+     * Returns the list of members for a group-principal.
      *
      * @param string $principal
+     *
      * @return array
+     *
      * @throws Exception
      */
-    public function getGroupMemberSet($principal) {
-
+    public function getGroupMemberSet($principal)
+    {
         $groupMemberSet = array();
 
         $principalObject = $this->getPrincipalByPath($principal, true);
@@ -336,19 +342,20 @@ class PrincipalBackend extends AbstractBackend implements CreatePrincipalSupport
     }
 
     /**
-     * Returns the list of groups a principal is a member of (each element of the list contains a URI)
+     * Returns the list of groups a principal is a member of (each element of the list contains a URI).
      *
      * @param string $principal
+     *
      * @return array
      */
-    function getGroupMembership($principal) {
-
+    public function getGroupMembership($principal)
+    {
         $principal_data = $this->getPrincipalByPath($principal, true);
 
         if (!$principal_data) {
             return array();
         }
-        
+
         $groupMembership = array($principal);
 
         if ($this->principalgroups_class !== '') {
@@ -367,12 +374,12 @@ class PrincipalBackend extends AbstractBackend implements CreatePrincipalSupport
      * The principals should be passed as a list of uri's.
      *
      * @param string $principal
-     * @param array $members
-     * @return void
+     * @param array  $members
+     *
      * @throws Exception
      */
-    function setGroupMemberSet($principal, array $members) {
-
+    public function setGroupMemberSet($principal, array $members)
+    {
         $groupPrincipal = $this->getPrincipalByPath($principal);
 
         if (!$groupPrincipal || !($groupPrincipal instanceof GroupInterface)) {
@@ -391,9 +398,7 @@ class PrincipalBackend extends AbstractBackend implements CreatePrincipalSupport
         }
 
         // TODO: Implement the addition/deletion of new/old members
-
     }
-
 
     /**
      * Creates a new principal.
@@ -403,10 +408,10 @@ class PrincipalBackend extends AbstractBackend implements CreatePrincipalSupport
      * of the principal.
      *
      * @param string $path
-     * @param MkCol $mkCol
-     * @return void
+     * @param MkCol  $mkCol
      */
-    function createPrincipal($path, MkCol $mkCol) {
+    public function createPrincipal($path, MkCol $mkCol)
+    {
 
         // create new user
         $username = str_replace('principal/', '', $path);

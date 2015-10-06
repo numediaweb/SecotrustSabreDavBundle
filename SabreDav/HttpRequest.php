@@ -15,10 +15,10 @@ use Sabre\HTTP\Request as BaseRequest;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * Class HttpRequest
+ * Class HttpRequest.
  */
-class HttpRequest extends BaseRequest {
-
+class HttpRequest extends BaseRequest
+{
     /**
      * @var Request
      */
@@ -30,31 +30,33 @@ class HttpRequest extends BaseRequest {
     private $currentUsername;
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param Request $request
      */
-    public function __construct(Request $request) {
+    public function __construct(Request $request)
+    {
         parent::__construct($request->getMethod(), $request->getRequestUri(), $request->headers->all(), $request->getContent(true));
         $this->request = $request;
     }
 
     /**
-     * set the current username
+     * set the current username.
      * 
      * @param string $username
      */
-    public function setCurrentUsername($username) {
+    public function setCurrentUsername($username)
+    {
         $this->currentUsername = $username;
     }
 
     /**
-     * get the current username
+     * get the current username.
      * 
      * @return string
      */
-    public function getCurrentUsername() {
+    public function getCurrentUsername()
+    {
         return $this->currentUsername;
     }
-
 }

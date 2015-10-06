@@ -29,7 +29,7 @@ class Collection extends BaseCollection
 
     /**
      * @param Filesystem $filesystem
-     * @param string $prefix
+     * @param string     $prefix
      */
     public function __construct(Filesystem $filesystem, $prefix = '')
     {
@@ -38,7 +38,7 @@ class Collection extends BaseCollection
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getChildren()
     {
@@ -58,25 +58,25 @@ class Collection extends BaseCollection
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getChild($name)
     {
         $key = $this->prefix.$name;
 
         if (!$this->filesystem->has($key)) {
-            throw new Exception\NotFound('The file with name: ' . $name . ' could not be found');
+            throw new Exception\NotFound('The file with name: '.$name.' could not be found');
         }
 
         if ($this->filesystem->getAdapter()->isDirectory($key)) {
-            return new Collection($this->filesystem, $key.'/');
+            return new self($this->filesystem, $key.'/');
         }
 
         return new File($this->filesystem->get($key));
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function childExists($name)
     {
@@ -84,7 +84,7 @@ class Collection extends BaseCollection
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getName()
     {
@@ -92,7 +92,7 @@ class Collection extends BaseCollection
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getLastModified()
     {

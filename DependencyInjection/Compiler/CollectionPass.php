@@ -16,7 +16,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 
 /**
- * Class CollectionPass
+ * Class CollectionPass.
  */
 class CollectionPass implements CompilerPassInterface
 {

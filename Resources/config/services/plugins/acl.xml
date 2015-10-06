@@ -7,7 +7,6 @@
     <parameters>
         <parameter key="secotrust.sabredav.acl_plugin.class">Secotrust\Bundle\SabreDavBundle\SabreDav\AclPlugin</parameter>
         <parameter key="secotrust.sabredav.acl_securitymanager.class">Secotrust\Bundle\SabreDavBundle\SabreDav\Acl\SecurityManager</parameter>
-        
         <parameter key="sabredav.acl.hideNodesFromListings">true</parameter>
         <parameter key="sabredav.acl.accessToNodesWithoutACL">true</parameter>
         <parameter key="sabredav.acl.defaultUsernamePath">principals</parameter>
@@ -18,7 +17,6 @@
             <argument type="service" id="security.authorization_checker" />
             <argument type="service" id="service_container" />
             <tag name="secotrust.sabredav.plugin" />
-            
             <call method="setHideNodesFromListings">
                 <argument>%sabredav.acl.hideNodesFromListings%</argument>
             </call>
@@ -27,10 +25,10 @@
             </call>
            <call method="setDefaultUsernamePath">
                 <argument>%sabredav.acl.defaultUsernamePath%</argument>
-            </call>        
+            </call>
         </service>
         <service id="secotrust.sabredav_acl_securityManager" class="%secotrust.sabredav.acl_securitymanager.class%" lazy="true">
             <argument type="service" id="service_container" />
-        </service>        
+        </service>
     </services>
 </container>

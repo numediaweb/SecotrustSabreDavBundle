@@ -8,14 +8,14 @@ use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Class extends the SabreDAV ACL Plugin to provide some additional methods and setter for public variables
+ * Class extends the SabreDAV ACL Plugin to provide some additional methods and setter for public variables.
  * 
  * @author lduer
  */
-class AclPlugin extends Plugin {
-
+class AclPlugin extends Plugin
+{
     /**
-     * the "parent" node (Addressbook for Cards, Calendar for CalendarObject)
+     * the "parent" node (Addressbook for Cards, Calendar for CalendarObject).
      *
      * This is set in the addressbook- or calendar-acl-request and
      * used in all sub-requests (cards & events)
@@ -40,23 +40,25 @@ class AclPlugin extends Plugin {
     private $davSecurity;
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param AuthorizationCheckerInterface $authChecker
-     * @param ContainerInterface $container
+     * @param ContainerInterface            $container
      */
-    public function __construct(AuthorizationCheckerInterface $authChecker, ContainerInterface $container) {
+    public function __construct(AuthorizationCheckerInterface $authChecker, ContainerInterface $container)
+    {
         $this->authChecker = $authChecker;
         $this->container = $container;
     }
 
     /**
      * By default nodes that are inaccessible by the user, can still be seen
-     * in directory listings (PROPFIND on parent with Depth: 1)
+     * in directory listings (PROPFIND on parent with Depth: 1).
      * 
-     * @param boolean $flag
+     * @param bool $flag
      */
-    public function setHideNodesFromListings($flag = false) {
+    public function setHideNodesFromListings($flag = false)
+    {
         $this->hideNodesFromListings = (bool) $flag;
     }
 
@@ -68,9 +70,10 @@ class AclPlugin extends Plugin {
      * To override this behaviour you can turn this setting off. This is useful
      * if you plan to fully support ACL in the entire tree.
      * 
-     * @param boolean $flag
+     * @param bool $flag
      */
-    public function setAccessToNodesWithoutACL($flag = true) {
+    public function setAccessToNodesWithoutACL($flag = true)
+    {
         $this->allowAccessToNodesWithoutACL = (bool) $flag;
     }
 
@@ -81,19 +84,22 @@ class AclPlugin extends Plugin {
      * 
      * @param string $usernamePath
      */
-    public function setDefaultUsernamePath($usernamePath = 'principals') {
+    public function setDefaultUsernamePath($usernamePath = 'principals')
+    {
         $this->defaultUsernamePath = $usernamePath;
     }
 
     /**
-     * add a principal to the admin-list to automatically receive {DAV:}all privileges
+     * add a principal to the admin-list to automatically receive {DAV:}all privileges.
      * 
      * @param string $principal
-     * @return boolean
+     *
+     * @return bool
      */
-    public function addAdminPrincipal($principal) {
-        if (strpos($principal, $this->defaultUsernamePath . '/') !== 0) {
-            $principal = $this->defaultUsernamePath . '/' . $principal;
+    public function addAdminPrincipal($principal)
+    {
+        if (strpos($principal, $this->defaultUsernamePath.'/') !== 0) {
+            $principal = $this->defaultUsernamePath.'/'.$principal;
         }
 
         if (!in_array($principal, $this->adminPrincipals)) {
@@ -106,14 +112,16 @@ class AclPlugin extends Plugin {
     }
 
     /**
-     * remove principal from admin-list
+     * remove principal from admin-list.
      * 
      * @param string $principal
-     * @return boolean
+     *
+     * @return bool
      */
-    public function removeAdminPrincipal($principal) {
-        if (strpos($principal, $this->defaultUsernamePath . '/') !== 0) {
-            $principal = $this->defaultUsernamePath . '/' . $principal;
+    public function removeAdminPrincipal($principal)
+    {
+        if (strpos($principal, $this->defaultUsernamePath.'/') !== 0) {
+            $principal = $this->defaultUsernamePath.'/'.$principal;
         }
 
         if (false !== ($key = \array_search($principal, $this->adminPrincipals))) {
@@ -133,16 +141,17 @@ class AclPlugin extends Plugin {
      * null will be returned if the node doesn't support ACLs.
      *
      * @param string|\Sabre\DAV\INode $node
+     *
      * @return array
      */
-    public function getACL($node) {
-
+    public function getACL($node)
+    {
         if (is_string($node)) {
             $node = $this->server->tree->getNodeForPath($node);
         }
 
         if (!$node instanceof IACL) {
-            return null;
+            return;
         }
 
         $username = $this->server->httpRequest->getCurrentUsername();
@@ -156,7 +165,6 @@ class AclPlugin extends Plugin {
                 $node instanceof \Sabre\CardDAV\AddressBook ||
                 $node instanceof \Sabre\CardDAV\Card
                 )) {
-
             $objectClass = '';
             $objectIdentifier = array('name' => $node->getName());
 
@@ -185,8 +193,8 @@ class AclPlugin extends Plugin {
                 // write permissions to DAV-ACL
                 foreach ($permissionList as $permission) {
                     $acl[] = array(
-                        'privilege' => '{DAV:}' . $permission,
-                        'principal' => $this->defaultUsernamePath . '/' . $username,
+                        'privilege' => '{DAV:}'.$permission,
+                        'principal' => $this->defaultUsernamePath.'/'.$username,
                         'protected' => true,
                     );
                 }

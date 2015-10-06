@@ -17,12 +17,12 @@ use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\DependencyInjection\Loader;
 
 /**
- * Class SecotrustSabreDavExtension
+ * Class SecotrustSabreDavExtension.
  */
 class SecotrustSabreDavExtension extends Extension
 {
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function load(array $configs, ContainerBuilder $container)
     {
@@ -31,20 +31,20 @@ class SecotrustSabreDavExtension extends Extension
 
         $loader = new Loader\XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services/services.xml');
-	
+
         if (isset($config['base_uri'])) {
             $container->getDefinition('secotrust.sabredav.server')->addMethodCall('setBaseUri', array($config['base_uri']));
         }
-	
+
         // load all plugins
         foreach ($config['plugins'] as $plugin => $enabled) {
             if ($enabled) {
                 $loader->load(sprintf('services/plugins/%s.xml', $plugin));
             }
         }
-	
+
         // no root dir is set, but webdav plugin is active: throw exception
-        if (!empty($config['root_dir']) && $config['plugins']['webdav']) {        
+        if (!empty($config['root_dir']) && $config['plugins']['webdav']) {
             //replace argument
             $container->getDefinition('secotrust.sabredav_root')->replaceArgument(0, $config['root_dir']);
         }
@@ -53,13 +53,13 @@ class SecotrustSabreDavExtension extends Extension
         if ($config['plugins']['browser']) {
             $container->setParameter('secotrust.sabredav.browser_plugin.logo', $config['browser_logo']);
             $container->setParameter('secotrust.sabredav.browser_plugin.favicon', $config['favicon']);
-        }     
-        
+        }
+
         // add security-service-class
-        if ($config['security_service']){
+        if ($config['security_service']) {
             $container->setParameter('secotrust.sabredav.acl.securityService', $config['security_service']);
         }
-        
+
         $container->setParameter('secotrust.cards_class', $config['settings']['cards_class']);
         $container->setParameter('secotrust.addressbooks_class', $config['settings']['addressbooks_class']);
         $container->setParameter('secotrust.calendarobjects_class', $config['settings']['calendarobjects_class']);

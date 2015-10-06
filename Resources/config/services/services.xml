@@ -22,6 +22,6 @@
         </service>
         <service id="secotrust.sabredav.server" class="%secotrust.sabredav.server.class%">
             <argument id="secotrust.sabredav.server.nodes" />
-        </service>	
+        </service>
     </services>
 </container>
