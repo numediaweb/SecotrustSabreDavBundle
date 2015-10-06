@@ -16,7 +16,7 @@ interface PrincipalRepositoryInterface {
      * expected to return principals that are in this base path.
      *
      * 
-     * @param type $uid
+     * @param string $prefixPath
      */
     public function getPrincipalsByPrefix($prefixPath);
     
@@ -29,7 +29,7 @@ interface PrincipalRepositoryInterface {
      * various properties should be combined with 'AND'. If $test is set to
      * 'anyof', it should be combined using 'OR'.
      * 
-     * @param type $prefixPath
+     * @param string $prefixPath
      * @param array $searchArray
      * @param string $test
      */

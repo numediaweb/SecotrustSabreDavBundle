@@ -12,7 +12,7 @@ interface AddressbookRepositoryInterface {
     /**
      * get all Addressbooks for submitted principal
      * 
-     * @param type $principalUri
+     * @param string $principalUri
      * @return array
      */
     public function findAllPrincipalAddressbooks($principalUri);

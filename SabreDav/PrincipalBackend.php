@@ -100,15 +100,16 @@ class PrincipalBackend extends AbstractBackend implements CreatePrincipalSupport
 
     /**
      * get Array with Principal-Data from User-Object
-     * 
+     *
      * @param UserInterface|GroupInterface $principalObject
-     * @param type $show_id
+     * @param bool $show_id
      * @return array
+     * @throws Exception
      */
     private function getPrincipalArray($principalObject, $show_id = false) {
 
         if (!($principalObject instanceof UserInterface) && !($principalObject instanceof GroupInterface)) {
-            throw new DAV\Exception('$principalObject must be of type UserInterface of GroupInterface');
+            throw new Exception('$principalObject must be of type UserInterface of GroupInterface');
         }
 
         $principal = array();
@@ -174,7 +175,9 @@ class PrincipalBackend extends AbstractBackend implements CreatePrincipalSupport
      * getPrincipalsByPrefix.
      *
      * @param string $path
-     * @return array|GroupInterface|UserInterface
+     * @param bool $getObject
+     * @return array|GroupInterface|UserInterface|void
+     * @throws Exception
      */
     public function getPrincipalByPath($path, $getObject = false) {
 
@@ -306,6 +309,7 @@ class PrincipalBackend extends AbstractBackend implements CreatePrincipalSupport
      *
      * @param string $principal
      * @return array
+     * @throws Exception
      */
     public function getGroupMemberSet($principal) {
 
@@ -314,7 +318,7 @@ class PrincipalBackend extends AbstractBackend implements CreatePrincipalSupport
         $principalObject = $this->getPrincipalByPath($principal, true);
 
         if (!$principalObject) {
-            throw new \Sabre\DAV\Exception('Principal not found');
+            throw new Exception('Principal not found');
         }
 
         // add current principal to group-list
@@ -365,13 +369,14 @@ class PrincipalBackend extends AbstractBackend implements CreatePrincipalSupport
      * @param string $principal
      * @param array $members
      * @return void
+     * @throws Exception
      */
     function setGroupMemberSet($principal, array $members) {
 
         $groupPrincipal = $this->getPrincipalByPath($principal);
 
         if (!$groupPrincipal || !($groupPrincipal instanceof GroupInterface)) {
-            throw new DAV\Exception('(Group-)Principal not found');
+            throw new Exception('(Group-)Principal not found');
         }
 
         // check if update of user-groups is possible; break if no group-manager or principalgroups_class

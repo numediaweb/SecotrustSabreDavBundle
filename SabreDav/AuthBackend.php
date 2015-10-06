@@ -13,7 +13,6 @@ namespace Secotrust\Bundle\SabreDavBundle\SabreDav;
 
 use Sabre\DAV\Auth\Backend\BackendInterface;
 use Sabre\DAV\Exception;
-use Sabre\DAV\Server;
 use Sabre\HTTP\RequestInterface;
 use Sabre\HTTP\ResponseInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
@@ -90,10 +89,10 @@ class AuthBackend implements BackendInterface {
     /**
      * Checks if username and password are valid. (Checked by the FOSUserManager)
      * Returns 
-     * 
-     * @param type $username
-     * @param type $password
-     * @return boolean
+     *
+     * @param $username
+     * @param $passwordHash
+     * @return bool
      */
     public function validateUserPass($username, $passwordHash) {
 
@@ -121,9 +120,9 @@ class AuthBackend implements BackendInterface {
      * 
      * before and after the generation/setting of the token, the events "secotrust.user_login.before" 
      * and "secotrust.user_login.after" are called, if some EventListeners are configured
-     * 
-     * @param string $user
-     * @param string $passwordHash
+     *
+     * @param \FOS\UserBundle\Model\UserInterface $user
+     * @param $passwordHash
      */
     private function userLoginAction(\FOS\UserBundle\Model\UserInterface $user, $passwordHash) {
         // call the pre-login-event        

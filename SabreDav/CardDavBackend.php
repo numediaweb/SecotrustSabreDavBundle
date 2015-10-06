@@ -14,6 +14,7 @@ namespace Secotrust\Bundle\SabreDavBundle\SabreDav;
 use Sabre\CardDAV\Backend\AbstractBackend;
 use Sabre\CardDAV\Backend\SyncSupport;
 use Sabre\CardDAV;
+use Sabre\DAV\Exception\BadRequest;
 use Secotrust\Bundle\SabreDavBundle\Entity\CardInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -41,10 +42,10 @@ class CardDavBackend extends AbstractBackend implements SyncSupport {
 
     /**
      * Create array with Card-Data
-     * 
-     * @param type $entity
-     * @param type $show_id
-     * @return array
+     *
+     * @param CardInterface $entity
+     * @param bool $show_id
+     * @return array|bool
      */
     private function getCardArray($entity, $show_id = false) {
 
@@ -183,7 +184,8 @@ class CardDavBackend extends AbstractBackend implements SyncSupport {
      * @param string $principalUri
      * @param string $url Just the 'basename' of the url.
      * @param array $properties
-     * @return void
+     * @return null
+     * @throws BadRequest
      */
     public function createAddressBook($principalUri, $url, array $properties) {
 
@@ -204,7 +206,7 @@ class CardDavBackend extends AbstractBackend implements SyncSupport {
                     $values['setDescription'] = $newValue;
                     break;
                 default :
-                    throw new DAV\Exception\BadRequest('Unknown property: ' . $property);
+                    throw new BadRequest('Unknown property: ' . $property);
             }
         }
 

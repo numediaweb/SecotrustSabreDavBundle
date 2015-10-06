@@ -17,7 +17,7 @@
             <argument>false</argument>
             <call method="setBrowserConfig">
                 <argument>%secotrust.sabredav.browser.config%</argument>
-            </call>            
+            </call>
             <tag name="secotrust.sabredav.plugin" />
         </service>
     </services>

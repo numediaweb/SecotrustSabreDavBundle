@@ -56,7 +56,7 @@ interface PrincipalInterface {
     /**
      * set vCardUrl
      * 
-     * @param type $vCardUrl
+     * @param string $vCardUrl
      */
     public function setVCardUrl($vCardUrl);
 }

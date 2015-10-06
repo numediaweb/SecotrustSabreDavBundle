@@ -32,8 +32,8 @@ class BrowserPlugin extends Plugin {
 
     /**
      * 
-     * @param type $key
-     * @return type
+     * @param string $key
+     * @return string
      */
     public function getBrowserConfig($key) {
         if (isset($this->config[$key])) {

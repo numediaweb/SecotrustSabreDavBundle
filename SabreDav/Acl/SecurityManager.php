@@ -48,12 +48,12 @@ class SecurityManager {
      * null will be returned to tell the AclPlugin to use the default Node-Acl (e.g. if no ACL was found for this entry)
      * 
      * an empty array will be returned, if the user has no permissions for the current object.
-     * 
-     * @param type $username
-     * @param type $objectClass
-     * @param type $objectIdentifier
-     * @param type $groupIdentifier
-     * @return array|null
+     *
+     * @param string $username
+     * @param $objectClass
+     * @param $objectIdentifier
+     * @param null $groupIdentifier
+     * @return null
      */
     public function getACL($username, $objectClass, $objectIdentifier, $groupIdentifier = null) {
         return null;

@@ -65,7 +65,7 @@ interface AddressbookInterface {
     /**
      * get the Uri
      * 
-     * @return type
+     * @return string
      */    
     public function getUri();
 
@@ -79,7 +79,7 @@ interface AddressbookInterface {
     /**
      * Search Card by URI in current Addressbook
      * 
-     * @param type $uri
+     * @param string $uri
      */
     public function findCard($uri);
 

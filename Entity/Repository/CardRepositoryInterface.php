@@ -12,8 +12,8 @@ interface CardRepositoryInterface {
     /**
      * Find one Card By vCard-UID and Addressbook-id
      * 
-     * @param type $uid
-     * @param type $addressBookId
+     * @param string $uid
+     * @param string $addressBookId
      */
     public function findSingleCardByUid($uid=null, $addressBookId=null);
 }

@@ -16,7 +16,10 @@ class AclPlugin extends Plugin {
 
     /**
      * the "parent" node (Addressbook for Cards, Calendar for CalendarObject)
-     * 
+     *
+     * This is set in the addressbook- or calendar-acl-request and
+     * used in all sub-requests (cards & events)
+     *
      * @var IACL
      */
     private $groupNode;
@@ -85,7 +88,7 @@ class AclPlugin extends Plugin {
     /**
      * add a principal to the admin-list to automatically receive {DAV:}all privileges
      * 
-     * @param type $principal
+     * @param string $principal
      * @return boolean
      */
     public function addAdminPrincipal($principal) {
@@ -105,7 +108,7 @@ class AclPlugin extends Plugin {
     /**
      * remove principal from admin-list
      * 
-     * @param type $principal
+     * @param string $principal
      * @return boolean
      */
     public function removeAdminPrincipal($principal) {
@@ -129,7 +132,7 @@ class AclPlugin extends Plugin {
      *
      * null will be returned if the node doesn't support ACLs.
      *
-     * @param string|DAV\INode $node
+     * @param string|\Sabre\DAV\INode $node
      * @return array
      */
     public function getACL($node) {
