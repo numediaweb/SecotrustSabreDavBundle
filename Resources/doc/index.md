@@ -24,8 +24,8 @@ Add DAV routes.
 ```yaml
 # app/config/routing.yml
 dav:
-resource: "@SecotrustSabreDavBundle/Resources/config/routing.xml"
-prefix: dav
+    resource: "@SecotrustSabreDavBundle/Resources/config/routing.xml"
+    prefix: dav
 ```
 
 Define a service to use for file access tagged with `secotrust.sabredav.collection`.
