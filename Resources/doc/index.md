@@ -48,3 +48,15 @@ services:
         tags:
             - { name: secotrust.sabredav.collection }
 ```
+
+## Add principal Collection
+
+```yaml
+# app/config/config.yml
+secotrust_sabre_dav:
+    plugins:
+        #...
+        principal: true
+    settings:
+        principals_class: Symfony\Component\Security\Core\User\User
+```
