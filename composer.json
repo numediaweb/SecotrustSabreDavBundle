@@ -1,5 +1,5 @@
 {
-    "name": "secotrust/sabredav-bundle",
+    "name": "tommygnr/sabredav-bundle",
     "type": "symfony-bundle",
     "description": "This bundle integrates the SabreDAV library into Symfony2",
     "keywords": ["SabreDAV", "WebDAV", "CalDAV", "CardDAV", "iCalendar"],
@@ -22,7 +22,7 @@
     "require": {
         "php": ">=5.3.3",
         "symfony/framework-bundle": "~2.2",
-        "friendsofsymfony/user-bundle": ">=1.3.5",
+        "friendsofsymfony/user-bundle": "^1.3.5",
         "sabre/dav": "~3.0"
     },
     "suggest": {
