@@ -5,7 +5,6 @@
     "keywords": ["SabreDAV", "WebDAV", "CalDAV", "CardDAV", "iCalendar"],
     "homepage": "https://github.com/secotrust/SecotrustSabreDavBundle",
     "license": "MIT",
-    "minimum-stability": "dev",
     "authors": [
         {
             "name": "Henrik Westphal",
