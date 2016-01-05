@@ -70,7 +70,7 @@ interface AddressbookInterface
     public function getUri();
 
     /**
-     * Get all Cars for current Addressbook.
+     * Get all Cards for current Addressbook.
      *
      * @return array
      */
