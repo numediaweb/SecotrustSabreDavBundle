@@ -55,11 +55,6 @@ class SecotrustSabreDavExtension extends Extension
             $container->setParameter('secotrust.sabredav.browser_plugin.favicon', $config['favicon']);
         }
 
-        // add security-service-class
-        if ($config['security_service']) {
-            $container->setParameter('secotrust.sabredav.acl.securityService', $config['security_service']);
-        }
-
         $container->setParameter('secotrust.cards_class', $config['settings']['cards_class']);
         $container->setParameter('secotrust.addressbooks_class', $config['settings']['addressbooks_class']);
         $container->setParameter('secotrust.calendarobjects_class', $config['settings']['calendarobjects_class']);
