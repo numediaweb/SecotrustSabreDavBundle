@@ -12,11 +12,11 @@
 namespace Secotrust\Bundle\SabreDavBundle\Controller;
 
 use Sabre\DAV\Server;
-use Secotrust\Bundle\SabreDavBundle\SabreDav\HttpResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 use Sabre\HTTP\Request;
+use Sabre\HTTP\Response;
 
 class SabreDavController
 {
@@ -32,7 +32,7 @@ class SabreDavController
     public function __construct(Server $dav, RouterInterface $router)
     {
         $this->dav = $dav;
-        $this->dav->setBaseUri($router->generate('secotrust_sabre_dav', array()));//TODO this can be done in service container
+        $this->dav->setBaseUri($router->generate('secotrust_sabre_dav', array()));
     }
 
     /**
@@ -48,7 +48,7 @@ class SabreDavController
         };
         $response = new StreamedResponse($callback);
         $dav->httpRequest = new Request($request->getMethod(), $request->getRequestUri(), $request->headers->all(), $request->getContent(true));
-        $dav->httpResponse = new HttpResponse($response);
+        $dav->httpResponse = new Response($response->getStatusCode(), $response->headers->all());
 
         return $response;
     }
