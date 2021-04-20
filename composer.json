@@ -21,7 +21,7 @@
     ],
     "require": {
         "php": ">=7.0",
-        "sabre/dav": "~3.0",
+        "sabre/dav": "^3.0",
         "symfony/dependency-injection": "^5.2",
         "symfony/config": "^5.2"
     },
