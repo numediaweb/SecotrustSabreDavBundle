@@ -1,5 +1,5 @@
 {
-    "name": "numediaweb/sabredav-bundle",
+    "name": "secotrust/sabredav-bundle",
     "type": "symfony-bundle",
     "description": "This bundle integrates the SabreDAV library into Symfony 5",
     "keywords": ["SabreDAV", "WebDAV", "CalDAV", "CardDAV", "iCalendar"],
