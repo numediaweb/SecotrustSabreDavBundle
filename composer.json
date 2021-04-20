@@ -21,7 +21,9 @@
     ],
     "require": {
         "php": ">=7.0",
-        "sabre/dav": "~3.0"
+        "sabre/dav": "~3.0",
+        "symfony/dependency-injection": "^5.2",
+        "symfony/config": "^5.2"
     },
     "suggest": {
         "knplabs/knp-gaufrette-bundle": "0.2.*",
@@ -30,5 +32,5 @@
     "autoload": {
         "psr-0": { "Secotrust\\Bundle\\SabreDavBundle": "" }
     },
-    "target-dir": "Secotrust/Bundle/SabreDavBundle",
+    "target-dir": "Secotrust/Bundle/SabreDavBundle"
 }

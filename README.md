@@ -2,7 +2,7 @@
 
 ## About ##
 
-This bundle integrates the [SabreDAV](https://github.com/fruux/sabre-dav) library into Symfony2.
+This bundle integrates the [SabreDAV](https://github.com/fruux/sabre-dav) library into Symfony 5.
 
 ## Documentation ##
 

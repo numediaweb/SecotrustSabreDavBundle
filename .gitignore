@@ -1,2 +1,13 @@
 /vendor
 composer.lock
+
+# System files
+.DS_Store
+
+# NetBeans-Settings
+/nbproject/
+
+# IDEs
+.idea/*
+*.iml
+.php_cs.cache
