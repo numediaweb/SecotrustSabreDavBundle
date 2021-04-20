@@ -24,12 +24,11 @@ class Configuration implements ConfigurationInterface
      */
     public function getConfigTreeBuilder()
     {
-        $treeBuilder = new TreeBuilder();
-        $rootNode = $treeBuilder->root('secotrust_sabre_dav');
+        $treeBuilder = new TreeBuilder('secotrust_sabre_dav');
 
         $default_base_uri = '/app_dev.php/remote';
 
-        $rootNode
+        $treeBuilder->getRootNode()
             ->children()
                 ->scalarNode('root_dir')
                     ->example('%kernel.root_dir%/../web/dav/')
