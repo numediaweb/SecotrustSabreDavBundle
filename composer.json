@@ -1,7 +1,7 @@
 {
-    "name": "tommygnr/sabredav-bundle",
+    "name": "numediaweb/sabredav-bundle",
     "type": "symfony-bundle",
-    "description": "This bundle integrates the SabreDAV library into Symfony2",
+    "description": "This bundle integrates the SabreDAV library into Symfony 5",
     "keywords": ["SabreDAV", "WebDAV", "CalDAV", "CardDAV", "iCalendar"],
     "homepage": "https://github.com/secotrust/SecotrustSabreDavBundle",
     "license": "MIT",
@@ -20,12 +20,10 @@
         }
     ],
     "require": {
-        "php": ">=5.3.3",
-        "symfony/framework-bundle": "^2.2.0|^3.0.0|^4.0.0",
+        "php": ">=7.0",
         "sabre/dav": "~3.0"
     },
     "suggest": {
-        "friendsofsymfony/user-bundle": "^1.3.5",
         "knplabs/knp-gaufrette-bundle": "0.2.*",
         "gedmo/doctrine-extensions": "~2.3"
     },
@@ -33,9 +31,4 @@
         "psr-0": { "Secotrust\\Bundle\\SabreDavBundle": "" }
     },
     "target-dir": "Secotrust/Bundle/SabreDavBundle",
-    "extra": {
-        "branch-alias": {
-            "dev-master": "2.0.x-dev"
-        }
-    }
 }
